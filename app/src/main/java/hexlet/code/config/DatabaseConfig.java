@@ -16,7 +16,7 @@ public class DatabaseConfig {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
         
-        // Для H2 драйвер не нужен, для PostgreSQL указываем
+        // Для PostgreSQL — указываем драйвер
         if (dbUrl.startsWith("jdbc:postgresql")) {
             config.setDriverClassName("org.postgresql.Driver");
         }
