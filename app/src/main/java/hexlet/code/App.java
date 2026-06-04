@@ -15,8 +15,9 @@ public class App {
         // Создаём таблицы из schema.sql
         try (Connection conn = DatabaseConfig.getConnection();
              Statement stmt = conn.createStatement()) {
-            String sql = new String(Files.readAllBytes(
-                Paths.get("app/src/main/resources/schema.sql")));
+            // Правильный путь к файлу schema.sql
+            String sqlPath = "src/main/resources/schema.sql";
+            String sql = new String(Files.readAllBytes(Paths.get(sqlPath)));
             stmt.execute(sql);
         }
         
