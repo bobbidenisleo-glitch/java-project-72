@@ -71,3 +71,12 @@ tasks.shadowJar {
         attributes["Main-Class"] = "hexlet.code.App"
     }
 }
+
+sonar {
+    properties {
+        property("sonar.projectKey", "bobbidenisleo-glitch_java-project-72")
+        property("sonar.organization", "bobbidenisleo-glitch")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+    }
+}
