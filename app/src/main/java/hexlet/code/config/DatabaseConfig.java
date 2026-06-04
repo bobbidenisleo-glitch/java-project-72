@@ -9,14 +9,25 @@ public class DatabaseConfig {
     private static HikariDataSource dataSource;
 
     public static void init() {
-        // Получаем URL базы данных из переменной окружения или используем H2 в памяти
-        String dbUrl = System.getenv().getOrDefault("JDBC_DATABASE_URL", 
-            "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;MODE=PostgreSQL");
+        // Сначала пробуем JDBC_DATABASE_URL, затем DATABASE_URL
+        String dbUrl = System.getenv("JDBC_DATABASE_URL");
+        if (dbUrl == null || dbUrl.isBlank()) {
+            dbUrl = System.getenv("DATABASE_URL");
+        }
+        
+        // Если URL в формате postgresql://... (без jdbc), добавляем префикс
+        if (dbUrl != null && !dbUrl.isBlank() && dbUrl.startsWith("postgresql://")) {
+            dbUrl = "jdbc:" + dbUrl;
+        }
+        
+        // Если ничего не нашли — используем H2 в памяти
+        if (dbUrl == null || dbUrl.isBlank()) {
+            dbUrl = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
+        }
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
         
-        // Для PostgreSQL — указываем драйвер
         if (dbUrl.startsWith("jdbc:postgresql")) {
             config.setDriverClassName("org.postgresql.Driver");
         }
