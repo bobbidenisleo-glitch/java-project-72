@@ -1,5 +1,16 @@
 FROM eclipse-temurin:21-jre
+
 WORKDIR /app
-COPY app/build/libs/app-all.jar /app/app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+
+# Копируем только исходники и gradle-файлы
+COPY app /app
+COPY Makefile Makefile
+
+# Даём права на выполнение gradlew
+RUN chmod +x gradlew
+
+# Собираем JAR
+RUN ./gradlew shadowJar
+
+# Запускаем
+CMD ["java", "-jar", "build/libs/app-all.jar"]
