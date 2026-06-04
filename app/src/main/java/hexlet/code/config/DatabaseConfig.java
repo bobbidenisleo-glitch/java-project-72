@@ -9,18 +9,32 @@ public class DatabaseConfig {
     private static HikariDataSource dataSource;
 
     public static void init() {
-        // Сначала пробуем JDBC_DATABASE_URL, затем DATABASE_URL
         String dbUrl = System.getenv("JDBC_DATABASE_URL");
         if (dbUrl == null || dbUrl.isBlank()) {
             dbUrl = System.getenv("DATABASE_URL");
         }
         
-        // Если URL в формате postgresql://... (без jdbc), добавляем префикс
         if (dbUrl != null && !dbUrl.isBlank() && dbUrl.startsWith("postgresql://")) {
             dbUrl = "jdbc:" + dbUrl;
         }
         
-        // Если ничего не нашли — используем H2 в памяти
+        // Если в URL нет порта, добавляем стандартный порт 5432
+        if (dbUrl != null && dbUrl.startsWith("jdbc:postgresql://")) {
+            // Проверяем, есть ли порт после хоста
+            // Формат: jdbc:postgresql://host/database или jdbc:postgresql://host:port/database
+            String withoutPrefix = dbUrl.substring("jdbc:postgresql://".length());
+            int slashIndex = withoutPrefix.indexOf('/');
+            if (slashIndex > 0) {
+                String hostPart = withoutPrefix.substring(0, slashIndex);
+                if (!hostPart.contains(":")) {
+                    // Нет порта — добавляем :5432
+                    String fixedUrl = "jdbc:postgresql://" + hostPart + ":5432" + withoutPrefix.substring(slashIndex);
+                    dbUrl = fixedUrl;
+                    System.out.println("Fixed JDBC URL: " + dbUrl);
+                }
+            }
+        }
+        
         if (dbUrl == null || dbUrl.isBlank()) {
             dbUrl = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
         }
