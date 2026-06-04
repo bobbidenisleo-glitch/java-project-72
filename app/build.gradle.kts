@@ -62,4 +62,11 @@ tasks.named("shadowDistTar") {
 }
 tasks.named("startShadowScripts") {
     enabled = false
+// Отключаем конфликтующие задачи shadow
+tasks.named("shadowDistTar") {
+    enabled = false
+}
+tasks.named("startShadowScripts") {
+    enabled = false
+}
 }
