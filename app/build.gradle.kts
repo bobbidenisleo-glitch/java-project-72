@@ -2,8 +2,8 @@ plugins {
     id("java")
     id("jacoco")
     id("org.sonarqube") version "5.1.0.4882"
-    id("com.gradleup.shadow") version "8.3.0"
     id("application")
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "hexlet.code"
@@ -48,18 +48,17 @@ sonar {
     }
 }
 
+tasks.named("shadowDistTar") {
+    enabled = false
+}
+tasks.named("startShadowScripts") {
+    enabled = false
+}
+
 tasks.shadowJar {
     mergeServiceFiles()
     archiveFileName.set("app-all.jar")
     manifest {
         attributes["Main-Class"] = "hexlet.code.App"
     }
-}
-
-// Отключаем конфликтующие задачи shadow
-tasks.named("shadowDistTar") {
-    enabled = false
-}
-tasks.named("startShadowScripts") {
-    enabled = false
 }
