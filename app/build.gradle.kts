@@ -2,7 +2,6 @@ plugins {
     id("java")
     id("jacoco")
     id("org.sonarqube") version "5.1.0.4882"
-    id("application")
     id("com.gradleup.shadow") version "8.3.0"
 }
 
@@ -33,10 +32,6 @@ tasks.jacocoTestReport {
         xml.required = true
         html.required = true
     }
-}
-
-application {
-    mainClass.set("hexlet.code.App")
 }
 
 sonar {
