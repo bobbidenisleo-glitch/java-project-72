@@ -2,8 +2,8 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Копируем весь проект (включая gradle)
-COPY . .
+# Копируем содержимое папки app (где лежат gradlew и build.gradle.kts)
+COPY app /app
 
 # Даём права на выполнение gradlew
 RUN chmod +x gradlew
@@ -12,4 +12,4 @@ RUN chmod +x gradlew
 RUN ./gradlew shadowJar
 
 # Запускаем приложение
-CMD ["java", "-jar", "app/build/libs/app-all.jar"]
+CMD ["java", "-jar", "build/libs/app-all.jar"]
