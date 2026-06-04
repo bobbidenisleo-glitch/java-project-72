@@ -58,4 +58,7 @@ sonar {
 tasks.shadowJar {
     mergeServiceFiles()
     archiveFileName.set("app-all.jar")
+    manifest {
+        attributes["Main-Class"] = "hexlet.code.App"
+    }
 }
