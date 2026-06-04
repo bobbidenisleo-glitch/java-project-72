@@ -18,19 +18,19 @@ public class DatabaseConfig {
             dbUrl = "jdbc:" + dbUrl;
         }
         
-        // Если в URL нет порта, добавляем стандартный порт 5432
+        // Принудительно добавляем порт 5432, если его нет
         if (dbUrl != null && dbUrl.startsWith("jdbc:postgresql://")) {
-            // Проверяем, есть ли порт после хоста
-            // Формат: jdbc:postgresql://host/database или jdbc:postgresql://host:port/database
-            String withoutPrefix = dbUrl.substring("jdbc:postgresql://".length());
-            int slashIndex = withoutPrefix.indexOf('/');
+            // Ищем первый '/' после "jdbc:postgresql://"
+            String prefix = "jdbc:postgresql://";
+            String rest = dbUrl.substring(prefix.length());
+            int slashIndex = rest.indexOf('/');
             if (slashIndex > 0) {
-                String hostPart = withoutPrefix.substring(0, slashIndex);
+                String hostPart = rest.substring(0, slashIndex);
+                // Если в hostPart нет двоеточия (порта), добавляем :5432
                 if (!hostPart.contains(":")) {
-                    // Нет порта — добавляем :5432
-                    String fixedUrl = "jdbc:postgresql://" + hostPart + ":5432" + withoutPrefix.substring(slashIndex);
-                    dbUrl = fixedUrl;
-                    System.out.println("Fixed JDBC URL: " + dbUrl);
+                    String newUrl = prefix + hostPart + ":5432" + rest.substring(slashIndex);
+                    dbUrl = newUrl;
+                    System.out.println("Added default port 5432 to URL");
                 }
             }
         }
@@ -52,6 +52,7 @@ public class DatabaseConfig {
         config.setIdleTimeout(600000);
         
         dataSource = new HikariDataSource(config);
+        System.out.println("Database initialized with URL: " + dbUrl);
     }
 
     public static Connection getConnection() throws SQLException {
