@@ -55,3 +55,11 @@ tasks.shadowJar {
         attributes["Main-Class"] = "hexlet.code.App"
     }
 }
+
+// Отключаем конфликтующие задачи shadow
+tasks.named("shadowDistTar") {
+    enabled = false
+}
+tasks.named("startShadowScripts") {
+    enabled = false
+}
