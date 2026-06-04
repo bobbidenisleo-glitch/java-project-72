@@ -14,16 +14,9 @@ repositories {
 }
 
 dependencies {
-    // Javalin web framework
     implementation("io.javalin:javalin:6.1.3")
-    
-    // Logger
     implementation("org.slf4j:slf4j-simple:2.0.13")
-    
-    // Jackson for JSON handling (required by Javalin)
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
-    
-    // Testing
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
