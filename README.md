@@ -1,2 +1,5 @@
-### Hexlet tests and linter status:
-[![Actions Status](https://github.com/bobbidenisleo-glitch/java-project-72/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/bobbidenisleo-glitch/java-project-72/actions)
+# java-project-72
+
+[![CI](https://github.com/bobbidenisleo-glitch/java-project-72/actions/workflows/ci.yml/badge.svg)](https://github.com/bobbidenisleo-glitch/java-project-72/actions/workflows/ci.yml)
+
+Page Analyzer - сайт, который анализирует указанные страницы на SEO пригодность.
