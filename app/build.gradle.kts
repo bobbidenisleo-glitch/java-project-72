@@ -48,18 +48,17 @@ sonar {
     }
 }
 
+tasks.named("shadowDistTar") {
+    enabled = false
+}
+tasks.named("startShadowScripts") {
+    enabled = false
+}
+
 tasks.shadowJar {
     mergeServiceFiles()
     archiveFileName.set("app-all.jar")
     manifest {
         attributes["Main-Class"] = "hexlet.code.App"
     }
-}
-
-// Отключаем конфликтующие задачи
-tasks.named("shadowDistTar") {
-    enabled = false
-}
-tasks.named("startShadowScripts") {
-    enabled = false
 }
