@@ -2,8 +2,8 @@ plugins {
     id("java")
     id("jacoco")
     id("org.sonarqube") version "5.1.0.4882"
-    id("com.gradleup.shadow") version "8.3.0"
     id("application")
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "hexlet.code"
@@ -56,17 +56,10 @@ tasks.shadowJar {
     }
 }
 
-// Отключаем конфликтующие задачи shadow
+// Отключаем конфликтующие задачи
 tasks.named("shadowDistTar") {
     enabled = false
 }
 tasks.named("startShadowScripts") {
     enabled = false
-// Отключаем конфликтующие задачи shadow
-tasks.named("shadowDistTar") {
-    enabled = false
-}
-tasks.named("startShadowScripts") {
-    enabled = false
-}
 }
