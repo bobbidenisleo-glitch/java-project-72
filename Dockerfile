@@ -1,8 +1,8 @@
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-# Копируем только исходники и gradle-файлы
+# Копируем исходники и gradle-файлы
 COPY app /app
 COPY Makefile Makefile
 
@@ -12,5 +12,5 @@ RUN chmod +x gradlew
 # Собираем JAR
 RUN ./gradlew shadowJar
 
-# Запускаем
+# Запускаем (используем JRE из того же образа)
 CMD ["java", "-jar", "build/libs/app-all.jar"]
