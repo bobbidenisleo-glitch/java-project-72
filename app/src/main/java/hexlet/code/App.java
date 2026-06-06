@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 public class App {
@@ -31,14 +32,22 @@ public class App {
         JavalinRenderer.register(new JavalinJte(), ".jte");
         
         Javalin app = Javalin.create(config -> {});
-        app.before(ctx -> ctx.contentType("text/html; charset=UTF-8"));
         
-        app.get("/", ctx -> ctx.render("index.jte"));
+        app.get("/", ctx -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
+            ctx.render("index.jte", model);
+        });
         
         app.post("/urls", ctx -> {
             String urlName = ctx.formParam("url");
             if (urlName == null || urlName.isBlank()) {
-                ctx.result("Empty URL");
+                ctx.sessionAttribute("flash", "URL не может быть пустым");
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.redirect("/");
                 return;
             }
             
@@ -48,12 +57,16 @@ public class App {
             
             var existingUrl = UrlRepository.findByName(urlName);
             if (existingUrl.isPresent()) {
+                ctx.sessionAttribute("flash", "Страница уже существует");
+                ctx.sessionAttribute("flashType", "info");
                 ctx.redirect("/urls/" + existingUrl.get().getId());
                 return;
             }
             
             var url = new Url(urlName);
             UrlRepository.save(url);
+            ctx.sessionAttribute("flash", "Страница успешно добавлена");
+            ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + url.getId());
         });
         
@@ -62,7 +75,16 @@ public class App {
             var url = UrlRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("URL not found"));
             var checks = UrlCheckRepository.findByUrlId(id);
-            ctx.render("show.jte", Map.of("url", url, "checks", checks));
+            
+            Map<String, Object> model = new HashMap<>();
+            model.put("url", url);
+            model.put("checks", checks);
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
+            
+            ctx.render("show.jte", model);
         });
         
         app.post("/urls/{id}/checks", ctx -> {
@@ -71,7 +93,9 @@ public class App {
                 .orElseThrow(() -> new RuntimeException("URL not found"));
             
             try {
-                Document doc = Jsoup.connect(url.getName()).get();
+                Document doc = Jsoup.connect(url.getName())
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .get();
                 int statusCode = doc.connection().response().statusCode();
                 String title = doc.title();
                 String h1 = doc.select("h1").first() != null ? doc.select("h1").first().text() : "";
@@ -87,6 +111,17 @@ public class App {
                 ctx.sessionAttribute("flashType", "danger");
             }
             ctx.redirect("/urls/" + id);
+        });
+        
+        app.get("/urls", ctx -> {
+            var urls = UrlRepository.findAll();
+            Map<String, Object> model = new HashMap<>();
+            model.put("urls", urls);
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
+            ctx.render("urls/index.jte", model);
         });
         
         return app;

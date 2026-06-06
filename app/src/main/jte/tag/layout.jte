@@ -1,6 +1,6 @@
-@var flash = ctx.sessionAttribute("flash")
-@var flashType = ctx.sessionAttribute("flashType")
+@param gg.jte.Content content
 
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -16,17 +16,7 @@
     </nav>
 
     <main class="container mt-3">
-        @if(flash != null && !flash.isEmpty())
-            <div class="alert alert-${flashType}" role="alert">
-                ${flash}
-            </div>
-            @java
-                ctx.sessionAttribute("flash", null);
-                ctx.sessionAttribute("flashType", null);
-            @end
-        @endif
-
-        ${output}
+        ${content}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
