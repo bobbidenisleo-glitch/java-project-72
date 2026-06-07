@@ -24,8 +24,8 @@ jobs:
       - name: Build with Gradle
         run: make build
 
-      - name: Run tests and collect coverage
-        run: make test
+      - name: Run tests and generate coverage
+        run: cd app && ./gradlew clean test jacocoTestReport
 
       - name: List coverage files
         run: ls -la app/build/reports/jacoco/test/
