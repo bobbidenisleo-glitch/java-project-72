@@ -52,7 +52,7 @@ sonar {
         property("sonar.projectKey", "bobbidenisleo-glitch_java-project-72")
         property("sonar.organization", "bobbidenisleo-glitch")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.coverage.jacoco.xmlReportPaths", "app/build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
 
