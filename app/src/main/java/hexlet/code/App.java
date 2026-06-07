@@ -72,10 +72,13 @@ public class App {
         
         app.get("/urls/{id}", ctx -> {
             Long id = Long.parseLong(ctx.pathParam("id"));
-            var url = UrlRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("URL not found"));
+            var url = UrlRepository.findById(id).orElse(null);
+            if (url == null) {
+                ctx.status(404);
+                ctx.result("URL not found");
+                return;
+            }
             var checks = UrlCheckRepository.findByUrlId(id);
-            
             Map<String, Object> model = new HashMap<>();
             model.put("url", url);
             model.put("checks", checks);
@@ -83,14 +86,13 @@ public class App {
             model.put("flashType", ctx.sessionAttribute("flashType"));
             ctx.sessionAttribute("flash", null);
             ctx.sessionAttribute("flashType", null);
-            
             ctx.render("show.jte", model);
         });
         
         app.post("/urls/{id}/checks", ctx -> {
             Long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("URL not found"));
+                .orElse(null);
             
             try {
                 Document doc = Jsoup.connect(url.getName())

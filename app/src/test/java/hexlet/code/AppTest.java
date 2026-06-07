@@ -1,0 +1,146 @@
+package hexlet.code;
+
+import hexlet.code.config.DatabaseConfig;
+import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;
+import hexlet.code.repository.UrlRepository;
+import hexlet.code.repository.UrlCheckRepository;
+import io.javalin.testtools.JavalinTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.Statement;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AppTest {
+
+    @BeforeEach
+    void setUp() throws Exception {
+        DatabaseConfig.init();
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement()) {
+            String sql = new String(Files.readAllBytes(
+                Paths.get("src/main/resources/schema.sql")));
+            for (String statement : sql.split(";")) {
+                if (!statement.trim().isEmpty()) {
+                    stmt.execute(statement);
+                }
+            }
+        }
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM url_checks");
+            stmt.execute("DELETE FROM urls");
+            stmt.execute("ALTER TABLE urls ALTER COLUMN id RESTART WITH 1");
+            stmt.execute("ALTER TABLE url_checks ALTER COLUMN id RESTART WITH 1");
+        }
+    }
+
+    @Test
+    void testMainPage() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/");
+            assertThat(response.code()).isEqualTo(200);
+        });
+    }
+
+    @Test
+    void testCreateUrl() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=example.com");
+            assertThat(response.code()).isBetween(200, 399);
+            var savedUrl = UrlRepository.findByName("http://example.com");
+            assertThat(savedUrl).isPresent();
+            assertThat(savedUrl.get().getName()).isEqualTo("http://example.com");
+        });
+    }
+
+    @Test
+    void testCreateDuplicateUrl() throws Exception {
+        var url = new Url("https://hexlet.io");
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=https://hexlet.io");
+            assertThat(response.code()).isBetween(200, 399);
+
+            var saved = UrlRepository.findByName("https://hexlet.io");
+            assertThat(saved).isPresent();
+
+            var pageResponse = client.get("/urls/" + saved.get().getId());
+            assertThat(pageResponse.code()).isEqualTo(200);
+        });
+    }
+
+    @Test
+    void testUrlsPage() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls");
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body().string()).contains("Сайты");
+        });
+    }
+
+    @Test
+    void testShowUrl() throws Exception {
+        var app = App.getApp();
+        var url = new Url("https://hexlet.io");
+        UrlRepository.save(url);
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls/" + url.getId());
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body().string()).contains("https://hexlet.io");
+        });
+    }
+
+    @Test
+    void testUrlNotFound() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls/999999");
+            assertThat(response.code()).isEqualTo(404);
+        });
+    }
+
+    @Test
+    void testCreateCheck() throws Exception {
+        var url = new Url("https://example.com");
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+
+            var checks = UrlCheckRepository.findByUrlId(url.getId());
+            assertThat(checks).isNotEmpty();
+        });
+    }
+
+    @Test
+    void testUrlPageContainsChecksForm() throws Exception {
+        var url = new Url("https://hexlet.io");
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls/" + url.getId());
+            var body = response.body().string();
+
+            assertThat(body)
+                .contains("/urls/" + url.getId() + "/checks")
+                .contains("data-test=\"checks\"");
+        });
+    }
+}

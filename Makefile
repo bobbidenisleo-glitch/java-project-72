@@ -8,7 +8,7 @@ run:
 
 .PHONY: test
 test:
-	cd app && ./gradlew test
+	cd app && ./gradlew test jacocoTestReport
 
 .PHONY: check
 check:

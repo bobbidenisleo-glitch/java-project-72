@@ -42,6 +42,8 @@
 
         <h2 class="mt-4">Проверки</h2>
         <div class="table-responsive">
+            <table class="table table-bordered table-hover" data-test="checks">
+        <div class="table-responsive">
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
