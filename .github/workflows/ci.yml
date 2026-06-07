@@ -21,16 +21,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build with Gradle
-        run: make build
-
-      - name: Run tests and generate coverage
-        run: cd app && ./gradlew clean test jacocoTestReport
-
-      - name: List coverage files
-        run: ls -la app/build/reports/jacoco/test/
-
-      - name: SonarQube Scan
-        run: cd app && ./gradlew sonar -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+      - name: Test + Coverage + Sonar
+        run: cd app && ./gradlew clean test jacocoTestReport sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
