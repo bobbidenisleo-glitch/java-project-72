@@ -23,8 +23,8 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.jsoup:jsoup:1.17.2")
     runtimeOnly("com.h2database:h2:2.2.224")
-    testImplementation(platform("org.junit:junit-bom:6.0.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("io.javalin:javalin-testtools:5.6.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
