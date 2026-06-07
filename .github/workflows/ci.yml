@@ -22,6 +22,6 @@ jobs:
           distribution: 'temurin'
 
       - name: Test + Coverage + Sonar
-        run: ./gradlew clean test jacocoTestReport sonar
+        run: cd app && ./gradlew clean test jacocoTestReport sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
