@@ -27,6 +27,9 @@ jobs:
       - name: Run tests and collect coverage
         run: make test
 
+      - name: List coverage files
+        run: ls -la app/build/reports/jacoco/test/
+
       - name: SonarQube Scan
         run: cd app && ./gradlew sonar -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
         env:
