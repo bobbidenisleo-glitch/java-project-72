@@ -28,6 +28,6 @@ jobs:
         run: make test
 
       - name: SonarQube Scan
-        run: cd app && ./gradlew sonar
+        run: cd app && ./gradlew sonar -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
