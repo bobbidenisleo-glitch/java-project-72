@@ -1,7 +1,7 @@
 package gg.jte.generated.ondemand;
 public final class JteshowGenerated {
 	public static final String JTE_NAME = "show.jte";
-	public static final int[] JTE_LINE_INFO = {0,0,0,0,5,5,7,7,8,8,9,9,9,9,10,10,10,12,12,14,14,14,15,15,15,16,16,16,18,18,18,18,36,36,38,38,38,39,39,39,40,40,40,41,41,41,42,42,42,43,43,43,45,45,49,49,49,50};
+	public static final int[] JTE_LINE_INFO = {0,0,0,0,5,5,7,7,8,8,9,9,9,9,10,10,10,12,12,14,14,14,20,20,20,24,24,24,28,28,28,30,30,33,33,33,35,35,39,39,39,39,57,57,59,59,59,60,60,60,61,61,61,62,62,62,63,63,63,64,64,64,66,66,70,70,70,71};
 	public static void render(gg.jte.html.HtmlTemplateOutput jteOutput, gg.jte.html.HtmlInterceptor jteHtmlInterceptor, hexlet.code.model.Url url, java.util.List<hexlet.code.model.UrlCheck> checks, java.lang.String flash, java.lang.String flashType) {
 		jteOutput.writeContent("\n");
 		gg.jte.generated.ondemand.tag.JtelayoutGenerated.render(jteOutput, jteHtmlInterceptor, new gg.jte.html.HtmlContent() {
@@ -20,13 +20,23 @@ public final class JteshowGenerated {
 				jteOutput.writeContent("\n\n        <h1>Сайт: ");
 				jteOutput.setContext("h1", null);
 				jteOutput.writeUserContent(url.getName());
-				jteOutput.writeContent("</h1>\n        <p>ID: ");
-				jteOutput.setContext("p", null);
+				jteOutput.writeContent("</h1>\n\n        <table class=\"table table-bordered\" data-test=\"url\">\n            <tbody>\n                <tr>\n                    <th>ID</th>\n                    <td>");
+				jteOutput.setContext("td", null);
 				jteOutput.writeUserContent(url.getId());
-				jteOutput.writeContent("</p>\n        <p>Создан: ");
-				jteOutput.setContext("p", null);
+				jteOutput.writeContent("</td>\n                </tr>\n                <tr>\n                    <th>Имя</th>\n                    <td>");
+				jteOutput.setContext("td", null);
+				jteOutput.writeUserContent(url.getName());
+				jteOutput.writeContent("</td>\n                </tr>\n                <tr>\n                    <th>Дата создания</th>\n                    <td>");
+				jteOutput.setContext("td", null);
 				jteOutput.writeUserContent(url.getCreatedAt().toString());
-				jteOutput.writeContent("</p>\n\n        <form action=\"/urls/");
+				jteOutput.writeContent("</td>\n                </tr>\n                ");
+				if (!checks.isEmpty()) {
+					jteOutput.writeContent("\n                <tr>\n                    <th>Код ответа</th>\n                    <td>");
+					jteOutput.setContext("td", null);
+					jteOutput.writeUserContent(checks.get(0).getStatusCode());
+					jteOutput.writeContent("</td>\n                </tr>\n                ");
+				}
+				jteOutput.writeContent("\n            </tbody>\n        </table>\n\n        <form action=\"/urls/");
 				jteOutput.setContext("form", "action");
 				jteOutput.writeUserContent(url.getId());
 					jteOutput.setContext("form", null);

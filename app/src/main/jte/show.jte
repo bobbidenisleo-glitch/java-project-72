@@ -12,8 +12,29 @@
         @endif
 
         <h1>Сайт: ${url.getName()}</h1>
-        <p>ID: ${url.getId()}</p>
-        <p>Создан: ${url.getCreatedAt().toString()}</p>
+
+        <table class="table table-bordered" data-test="url">
+            <tbody>
+                <tr>
+                    <th>ID</th>
+                    <td>${url.getId()}</td>
+                </tr>
+                <tr>
+                    <th>Имя</th>
+                    <td>${url.getName()}</td>
+                </tr>
+                <tr>
+                    <th>Дата создания</th>
+                    <td>${url.getCreatedAt().toString()}</td>
+                </tr>
+                @if(!checks.isEmpty())
+                <tr>
+                    <th>Код ответа</th>
+                    <td>${checks.get(0).getStatusCode()}</td>
+                </tr>
+                @endif
+            </tbody>
+        </table>
 
         <form action="/urls/${url.getId()}/checks" method="post">
             <input type="submit" class="btn btn-primary" value="Запустить проверку">

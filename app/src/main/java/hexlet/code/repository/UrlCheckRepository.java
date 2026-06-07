@@ -9,7 +9,7 @@ public class UrlCheckRepository extends BaseRepository {
     public static void save(UrlCheck check) throws SQLException {
         String sql = "INSERT INTO url_checks (url_id, status_code, title, h1, description, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setLong(1, check.getUrlId());
             stmt.setInt(2, check.getStatusCode());
             stmt.setString(3, check.getTitle());
@@ -17,6 +17,11 @@ public class UrlCheckRepository extends BaseRepository {
             stmt.setString(5, check.getDescription());
             stmt.setTimestamp(6, Timestamp.valueOf(check.getCreatedAt()));
             stmt.executeUpdate();
+            
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                check.setId(generatedKeys.getLong(1));
+            }
         }
     }
     
@@ -35,6 +40,11 @@ public class UrlCheckRepository extends BaseRepository {
                     rs.getString("h1"),
                     rs.getString("description")
                 );
+                check.setId(rs.getLong("id"));
+                Timestamp createdAt = rs.getTimestamp("created_at");
+                if (createdAt != null) {
+                    check.setCreatedAt(createdAt.toLocalDateTime());
+                }
                 checks.add(check);
             }
         }

@@ -115,6 +115,12 @@ public class App {
         
         app.get("/urls", ctx -> {
             var urls = UrlRepository.findAll();
+            for (var url : urls) {
+                var checks = UrlCheckRepository.findByUrlId(url.getId());
+                if (!checks.isEmpty()) {
+                    url.setLastCheck(checks.get(0));
+                }
+            }
             Map<String, Object> model = new HashMap<>();
             model.put("urls", urls);
             model.put("flash", ctx.sessionAttribute("flash"));
