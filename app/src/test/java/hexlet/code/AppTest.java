@@ -330,4 +330,23 @@ class AppTest {
             assertThat(response.code()).isEqualTo(404);
         });
     }
+
+    @Test
+    void testGetConnectionInitializesDataSource() throws Exception {
+        DatabaseConfig.resetDataSource();
+        try (var connection = DatabaseConfig.getConnection()) {
+            assertThat(connection).isNotNull();
+            assertThat(connection.isClosed()).isFalse();
+        }
+    }
+
+    @Test
+    void testInitWhenDataSourceAlreadyExists() throws Exception {
+        DatabaseConfig.init();
+        DatabaseConfig.init();
+        try (var connection = DatabaseConfig.getConnection()) {
+            assertThat(connection).isNotNull();
+            assertThat(connection.isClosed()).isFalse();
+        }
+    }
 }

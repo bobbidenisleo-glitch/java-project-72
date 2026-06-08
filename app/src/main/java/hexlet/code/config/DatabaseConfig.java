@@ -69,4 +69,12 @@ public class DatabaseConfig {
         }
         return dataSource.getConnection();
     }
+
+    // Для тестов: сброс источника данных
+    public static void resetDataSource() {
+        if (dataSource != null) {
+            dataSource.close();
+            dataSource = null;
+        }
+    }
 }
