@@ -8,6 +8,8 @@ import hexlet.code.model.UrlCheck;
 import io.javalin.Javalin;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinJte;
+import kong.unirest.Unirest;
+import kong.unirest.HttpResponse;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import java.io.IOException;
@@ -102,42 +104,45 @@ public class App {
         
         app.post("/urls/{id}/checks", ctx -> {
             Long id = Long.parseLong(ctx.pathParam("id"));
+
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
                 ctx.status(404);
                 ctx.result("URL not found");
                 return;
             }
-            
+
             try {
-                var response = Jsoup.connect(url.getName())
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .ignoreHttpErrors(true)
-                    .execute();
-                
-                int statusCode = response.statusCode();
-                
-                if (statusCode >= 400) {
-                    ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-                    ctx.sessionAttribute("flashType", "danger");
-                    ctx.redirect("/urls/" + id);
-                    return;
-                }
-                
-                Document doc = response.parse();
+                HttpResponse<String> response = Unirest.get(url.getName())
+                    .header("User-Agent", "Mozilla/5.0")
+                    .asString();
+
+                int statusCode = response.getStatus();
+                String body = response.getBody();
+
+                Document doc = Jsoup.parse(body);
+
                 String title = doc.title();
-                String h1 = doc.select("h1").first() != null ? doc.select("h1").first().text() : "";
-                String description = doc.select("meta[name=description]").first() != null 
-                    ? doc.select("meta[name=description]").first().attr("content") : "";
-                
+
+                var h1Element = doc.selectFirst("h1");
+                String h1 = (h1Element != null) ? h1Element.text() : "";
+
+                var metaElement = doc.selectFirst("meta[name=description]");
+                String description = (metaElement != null)
+                    ? metaElement.attr("content")
+                    : "";
+
                 UrlCheck check = new UrlCheck(id, statusCode, title, h1, description);
                 UrlCheckRepository.save(check);
+
                 ctx.sessionAttribute("flash", "Страница успешно проверена");
                 ctx.sessionAttribute("flashType", "success");
-            } catch (IOException e) {
+
+            } catch (Exception e) {
                 ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
                 ctx.sessionAttribute("flashType", "danger");
             }
+
             ctx.redirect("/urls/" + id);
         });
         

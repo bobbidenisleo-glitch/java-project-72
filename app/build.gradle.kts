@@ -22,6 +22,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.jsoup:jsoup:1.17.2")
+    implementation("com.konghq:unirest-java:3.14.0")
     runtimeOnly("com.h2database:h2:2.2.224")
     
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
