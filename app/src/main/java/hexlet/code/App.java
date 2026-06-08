@@ -110,10 +110,21 @@ public class App {
             }
             
             try {
-                Document doc = Jsoup.connect(url.getName())
+                var response = Jsoup.connect(url.getName())
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .get();
-                int statusCode = doc.connection().response().statusCode();
+                    .ignoreHttpErrors(true)
+                    .execute();
+                
+                int statusCode = response.statusCode();
+                
+                if (statusCode >= 400) {
+                    ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+                    ctx.sessionAttribute("flashType", "danger");
+                    ctx.redirect("/urls/" + id);
+                    return;
+                }
+                
+                Document doc = response.parse();
                 String title = doc.title();
                 String h1 = doc.select("h1").first() != null ? doc.select("h1").first().text() : "";
                 String description = doc.select("meta[name=description]").first() != null 
@@ -121,10 +132,10 @@ public class App {
                 
                 UrlCheck check = new UrlCheck(id, statusCode, title, h1, description);
                 UrlCheckRepository.save(check);
-                ctx.sessionAttribute("flash", "Проверка выполнена");
+                ctx.sessionAttribute("flash", "Страница успешно проверена");
                 ctx.sessionAttribute("flashType", "success");
             } catch (IOException e) {
-                ctx.sessionAttribute("flash", "Ошибка: " + e.getMessage());
+                ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
                 ctx.sessionAttribute("flashType", "danger");
             }
             ctx.redirect("/urls/" + id);
