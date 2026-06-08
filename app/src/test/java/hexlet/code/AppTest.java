@@ -143,4 +143,191 @@ class AppTest {
                 .contains("data-test=\"checks\"");
         });
     }
+
+    @Test
+    void testDatabaseConfigConnection() throws Exception {
+        DatabaseConfig.init();
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            assertThat(conn).isNotNull();
+            assertThat(conn.isClosed()).isFalse();
+        }
+    }
+
+    @Test
+    void testUrlModel() {
+        Url url = new Url("https://hexlet.io");
+        assertThat(url.getName()).isEqualTo("https://hexlet.io");
+    }
+
+    @Test
+    void testUrlCheckModel() {
+        UrlCheck check = new UrlCheck(1L, 200, "Test", "Test H1", "Test Description");
+        assertThat(check.getStatusCode()).isEqualTo(200);
+        assertThat(check.getTitle()).isEqualTo("Test");
+        assertThat(check.getDescription()).isEqualTo("Test Description");
+    }
+
+    @Test
+    void testInvalidUrlSubmission() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=invalid-url");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
+
+    @Test
+    void testEmptyUrlSubmission() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
+
+    @Test
+    void testCheckNonExistingUrl() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/999999/checks", "");
+            assertThat(response.code()).isEqualTo(404);
+        });
+    }
+
+    @Test
+    void testUrlAllGettersAndSetters() {
+        var createdAt = java.time.LocalDateTime.now();
+
+        var url = new Url("https://example.com");
+
+        url.setId(100L);
+        url.setName("https://hexlet.io");
+        url.setCreatedAt(createdAt);
+
+        var check = new UrlCheck(
+            1L,
+            200,
+            "Title",
+            "H1",
+            "Description"
+        );
+
+        url.setLastCheck(check);
+
+        assertThat(url.getId()).isEqualTo(100L);
+        assertThat(url.getName()).isEqualTo("https://hexlet.io");
+        assertThat(url.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(url.getLastCheck()).isEqualTo(check);
+    }
+
+    @Test
+    void testUrlFullConstructor() {
+        var createdAt = java.time.LocalDateTime.now();
+
+        var url = new Url(
+            42L,
+            "https://hexlet.io",
+            createdAt
+        );
+
+        assertThat(url.getId()).isEqualTo(42L);
+        assertThat(url.getName()).isEqualTo("https://hexlet.io");
+        assertThat(url.getCreatedAt()).isEqualTo(createdAt);
+    }
+
+    @Test
+    void testUrlCheckAllGettersAndSetters() {
+        var createdAt = java.time.LocalDateTime.now();
+
+        var check = new UrlCheck(
+            1L,
+            200,
+            "Title",
+            "H1",
+            "Description"
+        );
+
+        check.setId(10L);
+        check.setUrlId(20L);
+        check.setStatusCode(404);
+        check.setTitle("New Title");
+        check.setH1("New H1");
+        check.setDescription("New Description");
+        check.setCreatedAt(createdAt);
+
+        assertThat(check.getId()).isEqualTo(10L);
+        assertThat(check.getUrlId()).isEqualTo(20L);
+        assertThat(check.getStatusCode()).isEqualTo(404);
+        assertThat(check.getTitle()).isEqualTo("New Title");
+        assertThat(check.getH1()).isEqualTo("New H1");
+        assertThat(check.getDescription()).isEqualTo("New Description");
+        assertThat(check.getCreatedAt()).isEqualTo(createdAt);
+    }
+
+    @Test
+    void testUrlCheckFullConstructor() {
+        var createdAt = java.time.LocalDateTime.now();
+
+        var check = new UrlCheck(
+            5L,
+            6L,
+            200,
+            "Title",
+            "H1",
+            "Description",
+            createdAt
+        );
+
+        assertThat(check.getId()).isEqualTo(5L);
+        assertThat(check.getUrlId()).isEqualTo(6L);
+        assertThat(check.getStatusCode()).isEqualTo(200);
+        assertThat(check.getTitle()).isEqualTo("Title");
+        assertThat(check.getH1()).isEqualTo("H1");
+        assertThat(check.getDescription()).isEqualTo("Description");
+        assertThat(check.getCreatedAt()).isEqualTo(createdAt);
+    }
+
+    @Test
+    void testEmptyUrl() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
+
+    @Test
+    void testUrlWithoutProtocol() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            client.post("/urls", "url=google.com");
+            var saved = UrlRepository.findByName("http://google.com");
+            assertThat(saved).isPresent();
+        });
+    }
+
+    @Test
+    void testDuplicateUrlBranch() throws Exception {
+        var url = new Url("https://hexlet.io");
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=https://hexlet.io");
+            assertThat(response.code()).isBetween(200, 399);
+
+            var existing = UrlRepository.findByName("https://hexlet.io");
+            assertThat(existing).isPresent();
+            assertThat(existing.get().getId()).isEqualTo(url.getId());
+        });
+    }
+
+    @Test
+    void testCreateCheckForMissingUrl() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/999999/checks", "");
+            assertThat(response.code()).isEqualTo(404);
+        });
+    }
 }

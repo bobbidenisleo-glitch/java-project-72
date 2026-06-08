@@ -70,6 +70,17 @@ public class App {
             ctx.redirect("/urls/" + url.getId());
         });
         
+        app.get("/urls", ctx -> {
+            var urls = UrlRepository.findAll();
+            Map<String, Object> model = new HashMap<>();
+            model.put("urls", urls);
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
+            ctx.render("urls/index.jte", model);
+        });
+        
         app.get("/urls/{id}", ctx -> {
             Long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
@@ -91,8 +102,12 @@ public class App {
         
         app.post("/urls/{id}/checks", ctx -> {
             Long id = Long.parseLong(ctx.pathParam("id"));
-            var url = UrlRepository.findById(id)
-                .orElse(null);
+            var url = UrlRepository.findById(id).orElse(null);
+            if (url == null) {
+                ctx.status(404);
+                ctx.result("URL not found");
+                return;
+            }
             
             try {
                 Document doc = Jsoup.connect(url.getName())
@@ -113,23 +128,6 @@ public class App {
                 ctx.sessionAttribute("flashType", "danger");
             }
             ctx.redirect("/urls/" + id);
-        });
-        
-        app.get("/urls", ctx -> {
-            var urls = UrlRepository.findAll();
-            for (var url : urls) {
-                var checks = UrlCheckRepository.findByUrlId(url.getId());
-                if (!checks.isEmpty()) {
-                    url.setLastCheck(checks.get(0));
-                }
-            }
-            Map<String, Object> model = new HashMap<>();
-            model.put("urls", urls);
-            model.put("flash", ctx.sessionAttribute("flash"));
-            model.put("flashType", ctx.sessionAttribute("flashType"));
-            ctx.sessionAttribute("flash", null);
-            ctx.sessionAttribute("flashType", null);
-            ctx.render("urls/index.jte", model);
         });
         
         return app;
