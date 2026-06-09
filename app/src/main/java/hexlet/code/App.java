@@ -37,6 +37,8 @@ public class App {
 }
         
         JavalinRenderer.register(new JavalinJte(), ".jte");
+
+// Diagnostic: check if templates are reachable
         
         Javalin app = Javalin.create(config -> {});
         
