@@ -12,7 +12,13 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
 }
-
+sourceSets {
+    main {
+        resources {
+            srcDir("src/main/jte")
+        }
+    }
+}
 dependencies {
     implementation("io.javalin:javalin:5.6.3")
     implementation("io.javalin:javalin-rendering:5.6.3")
