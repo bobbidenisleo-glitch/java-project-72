@@ -15,21 +15,26 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Statement;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.nio.charset.StandardCharsets;
 public class App {
     public static Javalin getApp() throws Exception {
         DatabaseConfig.init();
         
         try (Connection conn = DatabaseConfig.getConnection();
-             Statement stmt = conn.createStatement()) {
-            String sql = new String(Files.readAllBytes(
-                Paths.get("src/main/resources/schema.sql")));
-            stmt.execute(sql);
-        }
+     Statement stmt = conn.createStatement()) {
+
+    var inputStream = App.class.getClassLoader()
+        .getResourceAsStream("schema.sql");
+
+    if (inputStream == null) {
+        throw new RuntimeException("schema.sql not found in classpath");
+    }
+
+    String sql = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    stmt.execute(sql);
+}
         
         JavalinRenderer.register(new JavalinJte(), ".jte");
         
