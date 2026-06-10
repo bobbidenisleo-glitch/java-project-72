@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("jacoco")
+   id("jacoco")
     id("org.sonarqube") version "5.1.0.4882"
     id("application")
     id("com.gradleup.shadow") version "8.3.0"
@@ -12,13 +12,23 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
 }
+
+// --- Resource setup ---
 sourceSets {
     main {
         resources {
+            // JTE templates
             srcDir("src/main/jte")
+            // Gradle уже включает src/main/resources по умолчанию
         }
     }
 }
+
+// --- Handle duplicate resources ---
+tasks.processResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 dependencies {
     implementation("io.javalin:javalin:5.6.3")
     implementation("io.javalin:javalin-rendering:5.6.3")
