@@ -41,6 +41,10 @@ public class UrlsController {
             Map<String, Object> model = new HashMap<>();
             model.put("url", url);
             model.put("checks", checks);
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
             ctx.render("show.jte", model);
         } catch (Exception e) {
             ctx.status(500);
