@@ -18,7 +18,7 @@ sourceSets {
     main {
         resources {
             // JTE templates
-            srcDir("src/main/jte")
+            srcDir("src/main/resources/templates")
             // Gradle уже включает src/main/resources по умолчанию
         }
     }
