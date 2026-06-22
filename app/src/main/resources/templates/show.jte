@@ -5,11 +5,6 @@
 
 @template.tag.layout(flash = flash, flashType = flashType, 
     content = @`
-        @if(flash != null && !flash.isEmpty())
-            <div class="alert alert-${flashType}" role="alert">
-                ${flash}
-            </div>
-        @endif
 
         <h1>Сайт: ${url.getName()}</h1>
 

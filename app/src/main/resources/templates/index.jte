@@ -3,11 +3,6 @@
 
 @template.tag.layout(flash = flash, flashType = flashType, 
     content = @`
-        @if(flash != null && !flash.isEmpty())
-            <div class="alert alert-${flashType}" role="alert">
-                ${flash}
-            </div>
-        @endif
 
         <div class="row">
             <div class="col-12 col-md-10 col-lg-8 mx-auto border rounded-3 bg-light p-5">
