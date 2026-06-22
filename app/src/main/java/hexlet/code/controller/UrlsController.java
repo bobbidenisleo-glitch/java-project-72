@@ -70,7 +70,7 @@ public class UrlsController {
             UrlRepository.save(url);
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
             ctx.sessionAttribute("flashType", "success");
-            ctx.redirect("/urls");
+            ctx.redirect("/urls/" + url.getId());
         } catch (Exception e) {
             ctx.status(500);
         }
@@ -104,7 +104,7 @@ public class UrlsController {
         } catch (Exception e) {
             ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
             ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/urls");
+            ctx.redirect("/urls/" + ctx.pathParam("id"));
         }
     }
 }
