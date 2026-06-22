@@ -6,6 +6,8 @@ import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.repository.UrlCheckRepository;
 import io.javalin.testtools.JavalinTest;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -97,8 +99,9 @@ class AppTest {
         UrlRepository.save(url);
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/urls/" + url.getId());
+            var body = response.body().string();
             assertThat(response.code()).isEqualTo(200);
-            assertThat(response.body().string()).contains("https://hexlet.io");
+            assertThat(body).contains("https://hexlet.io");
         });
     }
 
@@ -348,5 +351,31 @@ class AppTest {
             assertThat(connection).isNotNull();
             assertThat(connection.isClosed()).isFalse();
         }
+    }
+
+    @Test
+    void testCheckUrlWithMockServer() throws Exception {
+        var mockWebServer = new MockWebServer();
+        var html = "<html><head><title>Mock Title</title></head><body><h1>Mock H1</h1><meta name=\"description\" content=\"Mock Description\"></body></html>";
+        mockWebServer.enqueue(new MockResponse().setBody(html));
+        mockWebServer.start();
+
+        var url = new Url(mockWebServer.url("/").toString());
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+
+            var checks = UrlCheckRepository.findByUrlId(url.getId());
+            assertThat(checks).hasSize(1);
+            var check = checks.get(0);
+            assertThat(check.getTitle()).isEqualTo("Mock Title");
+            assertThat(check.getH1()).isEqualTo("Mock H1");
+            assertThat(check.getDescription()).isEqualTo("Mock Description");
+        });
+
+        mockWebServer.shutdown();
     }
 }
