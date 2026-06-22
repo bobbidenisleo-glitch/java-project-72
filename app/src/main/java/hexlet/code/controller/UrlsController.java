@@ -19,6 +19,10 @@ public class UrlsController {
             var urls = UrlRepository.findAll();
             Map<String, Object> model = new HashMap<>();
             model.put("urls", urls);
+            model.put("flash", ctx.sessionAttribute("flash"));
+            model.put("flashType", ctx.sessionAttribute("flashType"));
+            ctx.sessionAttribute("flash", null);
+            ctx.sessionAttribute("flashType", null);
             ctx.render("urls/index.jte", model);
         } catch (Exception e) {
             ctx.status(500);
