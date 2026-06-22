@@ -2,6 +2,7 @@ package hexlet.code;
 
 import hexlet.code.config.DatabaseConfig;
 import hexlet.code.repository.UrlRepository;
+import hexlet.code.config.JteConfig;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
@@ -36,7 +37,7 @@ public class App {
     stmt.execute(sql);
 }
         
-        JavalinRenderer.register(new JavalinJte(), ".jte");
+        JavalinRenderer.register(new JavalinJte(JteConfig.create()), ".jte");
 
 // Diagnostic: check if templates are reachable
         
