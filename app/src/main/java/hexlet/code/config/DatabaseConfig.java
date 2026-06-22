@@ -64,6 +64,7 @@ public class DatabaseConfig {
     }
 
     public static Connection getConnection() throws SQLException {
+        System.out.println("DatabaseConfig.getConnection() called");
         if (dataSource == null) {
             init();
         }

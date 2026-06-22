@@ -1,4 +1,6 @@
 @param gg.jte.Content content
+@param java.lang.String flash
+@param java.lang.String flashType
 
 <!DOCTYPE html>
 <html lang="ru">
@@ -16,7 +18,12 @@
     </nav>
 
     <main class="container mt-3">
-        ${content}
+      @if(flash != null && !flash.isEmpty())
+    <div class="alert alert-${flashType}" role="alert">
+        ${flash}
+    </div>
+@endif
+  ${content}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

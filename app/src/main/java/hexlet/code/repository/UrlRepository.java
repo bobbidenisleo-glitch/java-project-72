@@ -59,6 +59,8 @@ public class UrlRepository extends BaseRepository {
     }
     
     public static List<Url> findAll() throws SQLException {
+        System.out.println("findAll: starting");
+        System.out.println("UrlRepository.findAll() called");
         String sql = "SELECT * FROM urls ORDER BY id DESC";
         List<Url> urls = new ArrayList<>();
         try (Connection conn = getConnection();

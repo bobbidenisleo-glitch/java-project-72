@@ -6,6 +6,7 @@ import hexlet.code.config.DatabaseConfig;
 
 public class BaseRepository {
     protected static Connection getConnection() throws SQLException {
+        System.out.println("BaseRepository.getConnection() called");
         return DatabaseConfig.getConnection();
     }
 }

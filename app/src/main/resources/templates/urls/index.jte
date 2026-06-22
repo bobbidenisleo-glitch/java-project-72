@@ -2,7 +2,7 @@
 @param java.lang.String flash
 @param java.lang.String flashType
 
-@template.tag.layout(
+@template.tag.layout(flash = flash, flashType = flashType, 
     content = @`
         @if(flash != null && !flash.isEmpty())
             <div class="alert alert-${flashType}" role="alert">

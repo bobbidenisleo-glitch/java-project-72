@@ -16,6 +16,7 @@ public class UrlsController {
 
     public static void index(Context ctx) {
         try {
+            System.out.println("UrlsController.index() called");
             var urls = UrlRepository.findAll();
             Map<String, Object> model = new HashMap<>();
             model.put("urls", urls);
@@ -25,12 +26,15 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", null);
             ctx.render("urls/index.jte", model);
         } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
             ctx.status(500);
         }
     }
 
     public static void show(Context ctx) {
         try {
+            System.out.println("UrlsController.index() called");
             long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
@@ -47,12 +51,15 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", null);
             ctx.render("show.jte", model);
         } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
             ctx.status(500);
         }
     }
 
     public static void create(Context ctx) {
         try {
+            System.out.println("UrlsController.index() called");
             String urlName = ctx.formParam("url");
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
@@ -63,6 +70,7 @@ public class UrlsController {
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
+            System.out.println("Searching for URL: " + urlName);
             var existing = UrlRepository.findByName(urlName);
             if (existing.isPresent()) {
                 ctx.sessionAttribute("flash", "Страница уже существует");
@@ -76,12 +84,15 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + url.getId());
         } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
             ctx.status(500);
         }
     }
 
     public static void check(Context ctx) {
         try {
+            System.out.println("UrlsController.index() called");
             long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
@@ -106,6 +117,8 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + id);
         } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
             ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
             ctx.sessionAttribute("flashType", "danger");
             ctx.redirect("/urls/" + ctx.pathParam("id"));
