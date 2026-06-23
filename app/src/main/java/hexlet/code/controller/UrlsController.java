@@ -8,6 +8,7 @@ import io.javalin.http.Context;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import java.net.URI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,9 +58,8 @@ public class UrlsController {
         }
     }
 
-    public static void create(Context ctx) {
+        public static void create(Context ctx) {
         try {
-            System.out.println("UrlsController.index() called");
             String urlName = ctx.formParam("url");
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
@@ -70,6 +70,22 @@ public class UrlsController {
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
+            
+            // Нормализация URL: оставляем только схему и хост
+            try {
+                java.net.URI uri = new java.net.URI(urlName);
+                StringBuilder normalized = new StringBuilder();
+                normalized.append(uri.getScheme())
+                          .append("://")
+                          .append(uri.getHost());
+                if (uri.getPort() != -1) {
+                    normalized.append(":").append(uri.getPort());
+                }
+                urlName = normalized.toString();
+            } catch (Exception e) {
+                // Если не удалось разобрать URL — оставляем как есть
+            }
+            
             System.out.println("Searching for URL: " + urlName);
             var existing = UrlRepository.findByName(urlName);
             if (existing.isPresent()) {
@@ -84,7 +100,6 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + url.getId());
         } catch (Exception e) {
-            e.printStackTrace();
             e.printStackTrace();
             ctx.status(500);
         }
