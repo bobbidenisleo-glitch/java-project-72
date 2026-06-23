@@ -20,7 +20,7 @@ public class UrlsController {
         if (text == null) {
             return "";
         }
-        int maxLength = 255;
+        int maxLength = 100;
         if (text.length() <= maxLength) {
             return text;
         }
