@@ -4,6 +4,7 @@ import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.repository.UrlCheckRepository;
+import hexlet.code.Utils;
 import io.javalin.http.Context;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
@@ -15,10 +16,20 @@ import java.util.Map;
 
 public class UrlsController {
 
+    private static String truncate(String text) {
+        if (text == null) {
+            return "";
+        }
+        int maxLength = 255;
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength - 3) + "...";
+    }
+
     public static void index(Context ctx) {
         try {
             var urls = UrlRepository.findAll();
-            // Подгружаем последнюю проверку для каждого URL
             for (var url : urls) {
                 var checks = UrlCheckRepository.findByUrlId(url.getId());
                 if (!checks.isEmpty()) {
@@ -74,7 +85,6 @@ public class UrlsController {
                 urlName = "http://" + urlName;
             }
             
-            // Нормализация URL: оставляем только схему и хост
             try {
                 URI uri = new URI(urlName);
                 StringBuilder normalized = new StringBuilder();
@@ -86,10 +96,9 @@ public class UrlsController {
                 }
                 urlName = normalized.toString();
             } catch (Exception e) {
-                // Если не удалось разобрать URL — оставляем как есть
+                // ignore
             }
             
-            System.out.println("Searching for URL: " + urlName);
             var existing = UrlRepository.findByName(urlName);
             if (existing.isPresent()) {
                 ctx.sessionAttribute("flash", "Страница уже существует");
@@ -120,14 +129,21 @@ public class UrlsController {
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
             var doc = Jsoup.parse(response.getBody());
+            
+            String title = truncate(doc.title());
+            String h1 = doc.selectFirst("h1") != null
+                ? truncate(doc.selectFirst("h1").text())
+                : "";
+            String description = doc.selectFirst("meta[name=description]") != null
+                ? truncate(doc.selectFirst("meta[name=description]").attr("content"))
+                : "";
+            
             var check = new UrlCheck(
                 id,
                 response.getStatus(),
-                doc.title(),
-                doc.selectFirst("h1") != null ? doc.selectFirst("h1").text() : "",
-                doc.selectFirst("meta[name=description]") != null
-                    ? doc.selectFirst("meta[name=description]").attr("content")
-                    : ""
+                title,
+                h1,
+                description
             );
             UrlCheckRepository.save(check);
             ctx.sessionAttribute("flash", "Страница успешно проверена");
