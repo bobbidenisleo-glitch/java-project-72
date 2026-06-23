@@ -75,16 +75,21 @@ public class UrlsController {
     public static void create(Context ctx) {
         try {
             String urlName = ctx.formParam("url");
+            
+            // 1. Пустой URL → редирект с ошибкой
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
                 ctx.sessionAttribute("flashType", "danger");
                 ctx.redirect("/");
                 return;
             }
+            
+            // 2. Добавляем протокол, если его нет
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
             
+            // 3. Нормализация URL (оставляем только схему и хост)
             try {
                 URI uri = new URI(urlName);
                 StringBuilder normalized = new StringBuilder();
@@ -96,9 +101,14 @@ public class UrlsController {
                 }
                 urlName = normalized.toString();
             } catch (Exception e) {
-                // Если не удалось разобрать URL — оставляем как есть
+                // 4. Невалидный URL → 422
+                ctx.status(422);
+                ctx.sessionAttribute("flash", "Некорректный URL");
+                ctx.sessionAttribute("flashType", "danger");
+                return;
             }
             
+            // 5. Проверка на дубликат
             var existing = UrlRepository.findByName(urlName);
             if (existing.isPresent()) {
                 ctx.sessionAttribute("flash", "Страница уже существует");
@@ -106,6 +116,8 @@ public class UrlsController {
                 ctx.redirect("/urls/" + existing.get().getId());
                 return;
             }
+            
+            // 6. Сохранение и редирект
             var url = new Url(urlName);
             UrlRepository.save(url);
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
