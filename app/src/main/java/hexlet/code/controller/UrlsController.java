@@ -96,7 +96,7 @@ public class UrlsController {
                 }
                 urlName = normalized.toString();
             } catch (Exception e) {
-                // ignore
+                // Если не удалось разобрать URL — оставляем как есть
             }
             
             var existing = UrlRepository.findByName(urlName);
@@ -112,8 +112,9 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + url.getId());
         } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500);
+            ctx.status(422);
+            ctx.sessionAttribute("flash", "Некорректный URL");
+            ctx.sessionAttribute("flashType", "danger");
         }
     }
 
