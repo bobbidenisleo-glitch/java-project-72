@@ -1,5 +1,5 @@
 @param hexlet.code.model.Url url
-@param java.util.List checks
+@param java.util.List<hexlet.code.model.UrlCheck> checks
 
 <@layout>
     <h1>Сайт: ${url.getName()}</h1>
@@ -12,14 +12,14 @@
     
     <h2>Проверки</h2>
     <div class="table-responsive">
-        <table class="table table-bordered table-hover">
+        <table class="table table-bordered table-hover" data-test="checks">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Код ответа</th>
-                    <th>Заголовок</th>
                     <th>h1</th>
-                    <th>Описание</th>
+                    <th>Title</th>
+                    <th>Description</th>
                     <th>Дата проверки</th>
                 </tr>
             </thead>
@@ -28,8 +28,8 @@
                     <tr>
                         <td>${check.getId()}</td>
                         <td>${check.getStatusCode()}</td>
-                        <td>${check.getTitle()}</td>
                         <td>${check.getH1()}</td>
+                        <td>${check.getTitle()}</td>
                         <td>${check.getDescription()}</td>
                         <td>${check.getCreatedAt().toString()}</td>
                     </tr>
