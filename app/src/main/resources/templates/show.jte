@@ -38,15 +38,13 @@
         <h2 class="mt-4">Проверки</h2>
         <div class="table-responsive">
             <table class="table table-bordered table-hover" data-test="checks">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Код ответа</th>
-                        <th>Заголовок</th>
                         <th>h1</th>
-                        <th>Описание</th>
+                        <th>Title</th>
+                        <th>Description</th>
                         <th>Дата</th>
                     </tr>
                 </thead>
@@ -55,8 +53,8 @@
                         <tr>
                             <td>${check.getId()}</td>
                             <td>${check.getStatusCode()}</td>
-                            <td>${check.getTitle()}</td>
                             <td>${check.getH1()}</td>
+                            <td>${check.getTitle()}</td>
                             <td>${check.getDescription()}</td>
                             <td>${check.getCreatedAt().toString()}</td>
                         </tr>
