@@ -75,58 +75,76 @@ public class UrlsController {
     public static void create(Context ctx) {
         try {
             String urlName = ctx.formParam("url");
-            
-            // 1. Пустой URL → редирект с ошибкой
+
+            // 1. Пустой URL → 422
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
                 ctx.sessionAttribute("flashType", "danger");
                 ctx.redirect("/");
                 return;
             }
-            
-            // 2. Добавляем протокол, если его нет
+
+            // Добавляем http:// если нет схемы
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
-            
-            // 3. Нормализация URL (оставляем только схему и хост)
+
+            // Строгая валидация URI
+            URI uri;
             try {
-                URI uri = new URI(urlName);
-                StringBuilder normalized = new StringBuilder();
-                normalized.append(uri.getScheme())
-                          .append("://")
-                          .append(uri.getHost());
-                if (uri.getPort() != -1) {
-                    normalized.append(":").append(uri.getPort());
+                uri = new URI(urlName);
+                if (uri.getScheme() == null || uri.getHost() == null || uri.getHost().isBlank()) {
+                    throw new IllegalArgumentException("Invalid URL");
                 }
-                urlName = normalized.toString();
             } catch (Exception e) {
-                // 4. Невалидный URL → 422
                 ctx.status(422);
                 ctx.sessionAttribute("flash", "Некорректный URL");
                 ctx.sessionAttribute("flashType", "danger");
+                ctx.result("");
                 return;
             }
-            
-            // 5. Проверка на дубликат
-            var existing = UrlRepository.findByName(urlName);
+
+            // 2. Строгая валидация URI
+            try {
+                uri = new URI(urlName);
+                if (uri.getScheme() == null || uri.getHost() == null || uri.getHost().isBlank()) {
+                    throw new IllegalArgumentException("Invalid URL");
+                }
+            } catch (Exception e) {
+                ctx.status(422);
+                ctx.sessionAttribute("flash", "Некорректный URL");
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.result("");
+                return;
+            }
+
+            // 3. Нормализация
+            String normalizedUrl = uri.getScheme() + "://" + uri.getHost();
+            if (uri.getPort() != -1) {
+                normalizedUrl += ":" + uri.getPort();
+            }
+
+            // 4. Проверка на дубликат
+            var existing = UrlRepository.findByName(normalizedUrl);
             if (existing.isPresent()) {
                 ctx.sessionAttribute("flash", "Страница уже существует");
                 ctx.sessionAttribute("flashType", "info");
                 ctx.redirect("/urls/" + existing.get().getId());
                 return;
             }
-            
-            // 6. Сохранение и редирект
-            var url = new Url(urlName);
+
+            // 5. Сохранение
+            var url = new Url(normalizedUrl);
             UrlRepository.save(url);
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + url.getId());
+
         } catch (Exception e) {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
+            ctx.result("");
         }
     }
 
