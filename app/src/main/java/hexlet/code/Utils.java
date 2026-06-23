@@ -5,9 +5,10 @@ public class Utils {
         if (text == null) {
             return "";
         }
-        if (text.length() <= 200) {
+        int maxLength = 100;
+        if (text.length() <= maxLength) {
             return text;
         }
-        return text.substring(0, 197) + "...";
+        return text.substring(0, maxLength - 3) + "...";
     }
 }
