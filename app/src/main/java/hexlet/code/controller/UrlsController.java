@@ -8,8 +8,8 @@ import io.javalin.http.Context;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import java.net.URI;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +17,14 @@ public class UrlsController {
 
     public static void index(Context ctx) {
         try {
-            System.out.println("UrlsController.index() called");
             var urls = UrlRepository.findAll();
+            // Подгружаем последнюю проверку для каждого URL
+            for (var url : urls) {
+                var checks = UrlCheckRepository.findByUrlId(url.getId());
+                if (!checks.isEmpty()) {
+                    url.setLastCheck(checks.get(0));
+                }
+            }
             Map<String, Object> model = new HashMap<>();
             model.put("urls", urls);
             model.put("flash", ctx.sessionAttribute("flash"));
@@ -28,14 +34,12 @@ public class UrlsController {
             ctx.render("urls/index.jte", model);
         } catch (Exception e) {
             e.printStackTrace();
-            e.printStackTrace();
             ctx.status(500);
         }
     }
 
     public static void show(Context ctx) {
         try {
-            System.out.println("UrlsController.index() called");
             long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
@@ -53,12 +57,11 @@ public class UrlsController {
             ctx.render("show.jte", model);
         } catch (Exception e) {
             e.printStackTrace();
-            e.printStackTrace();
             ctx.status(500);
         }
     }
 
-        public static void create(Context ctx) {
+    public static void create(Context ctx) {
         try {
             String urlName = ctx.formParam("url");
             if (urlName == null || urlName.isBlank()) {
@@ -73,7 +76,7 @@ public class UrlsController {
             
             // Нормализация URL: оставляем только схему и хост
             try {
-                java.net.URI uri = new java.net.URI(urlName);
+                URI uri = new URI(urlName);
                 StringBuilder normalized = new StringBuilder();
                 normalized.append(uri.getScheme())
                           .append("://")
@@ -107,7 +110,6 @@ public class UrlsController {
 
     public static void check(Context ctx) {
         try {
-            System.out.println("UrlsController.index() called");
             long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
@@ -132,7 +134,6 @@ public class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect("/urls/" + id);
         } catch (Exception e) {
-            e.printStackTrace();
             e.printStackTrace();
             ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
             ctx.sessionAttribute("flashType", "danger");
