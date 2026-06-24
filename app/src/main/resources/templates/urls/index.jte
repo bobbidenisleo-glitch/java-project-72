@@ -14,8 +14,8 @@
                         <th>ID</th>
                         <th>Имя</th>
                         <th>Дата создания</th>
-                        <th>Дата проверки</th>
                         <th>Код ответа</th>
+                        <th>Дата проверки</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,14 +26,14 @@
                             <td>${url.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
                             <td>
                                 @if(url.getLastCheck() != null)
-                                    ${url.getLastCheck().getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
+                                    ${url.getLastCheck().getStatusCode()}
                                 @else
                                     &nbsp;
                                 @endif
                             </td>
                             <td>
                                 @if(url.getLastCheck() != null)
-                                    ${url.getLastCheck().getStatusCode()}
+                                    ${url.getLastCheck().getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
                                 @else
                                     &nbsp;
                                 @endif
