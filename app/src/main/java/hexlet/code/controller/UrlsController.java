@@ -76,7 +76,6 @@ public class UrlsController {
         try {
             String urlName = ctx.formParam("url");
 
-            // 1. Пустой URL → 422
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
                 ctx.sessionAttribute("flashType", "danger");
@@ -84,47 +83,29 @@ public class UrlsController {
                 return;
             }
 
-            // Добавляем http:// если нет схемы
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
 
-            // Строгая валидация URI
             URI uri;
             try {
                 uri = new URI(urlName);
-                if (uri.getScheme() == null || uri.getHost() == null || uri.getHost().isBlank()) {
-                    throw new IllegalArgumentException("Invalid URL");
+                String host = uri.getHost();
+                if (host == null || host.isBlank() || !host.contains(".")) {
+                    throw new IllegalArgumentException("Invalid domain");
                 }
             } catch (Exception e) {
                 ctx.status(422);
                 ctx.sessionAttribute("flash", "Некорректный URL");
                 ctx.sessionAttribute("flashType", "danger");
-                ctx.result("");
                 return;
             }
 
-            // 2. Строгая валидация URI
-            try {
-                uri = new URI(urlName);
-                if (uri.getScheme() == null || uri.getHost() == null || uri.getHost().isBlank()) {
-                    throw new IllegalArgumentException("Invalid URL");
-                }
-            } catch (Exception e) {
-                ctx.status(422);
-                ctx.sessionAttribute("flash", "Некорректный URL");
-                ctx.sessionAttribute("flashType", "danger");
-                ctx.result("");
-                return;
-            }
-
-            // 3. Нормализация
             String normalizedUrl = uri.getScheme() + "://" + uri.getHost();
             if (uri.getPort() != -1) {
                 normalizedUrl += ":" + uri.getPort();
             }
 
-            // 4. Проверка на дубликат
             var existing = UrlRepository.findByName(normalizedUrl);
             if (existing.isPresent()) {
                 ctx.sessionAttribute("flash", "Страница уже существует");
@@ -133,7 +114,6 @@ public class UrlsController {
                 return;
             }
 
-            // 5. Сохранение
             var url = new Url(normalizedUrl);
             UrlRepository.save(url);
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
@@ -144,7 +124,6 @@ public class UrlsController {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
-            ctx.result("");
         }
     }
 
@@ -160,7 +139,7 @@ public class UrlsController {
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
             var doc = Jsoup.parse(response.getBody());
-            
+
             String title = truncate(doc.title());
             String h1 = doc.selectFirst("h1") != null
                 ? truncate(doc.selectFirst("h1").text())
@@ -168,7 +147,7 @@ public class UrlsController {
             String description = doc.selectFirst("meta[name=description]") != null
                 ? truncate(doc.selectFirst("meta[name=description]").attr("content"))
                 : "";
-            
+
             var check = new UrlCheck(
                 id,
                 response.getStatus(),

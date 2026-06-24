@@ -176,7 +176,7 @@ class AppTest {
         var app = App.getApp();
         JavalinTest.test(app, (server, client) -> {
             var response = client.post("/urls", "url=invalid-url");
-            assertThat(response.code()).isBetween(200, 399);
+            assertThat(response.code()).isEqualTo(422);
         });
     }
 
