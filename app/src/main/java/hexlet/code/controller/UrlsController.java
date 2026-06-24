@@ -4,6 +4,7 @@ import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.repository.UrlCheckRepository;
+import hexlet.code.Utils;
 import io.javalin.http.Context;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
@@ -14,17 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UrlsController {
-
-    private static String truncate(String text) {
-        if (text == null) {
-            return "";
-        }
-        int maxLength = 100;
-        if (text.length() <= maxLength) {
-            return text;
-        }
-        return text.substring(0, maxLength - 3) + "...";
-    }
 
     public static void index(Context ctx) {
         try {
@@ -154,12 +144,12 @@ public class UrlsController {
             }
             var doc = Jsoup.parse(response.getBody());
 
-            String title = truncate(doc.title());
+            String title = Utils.truncate(doc.title());
             String h1 = doc.selectFirst("h1") != null
-                ? truncate(doc.selectFirst("h1").text())
+                ? Utils.truncate(doc.selectFirst("h1").text())
                 : "";
             String description = doc.selectFirst("meta[name=description]") != null
-                ? truncate(doc.selectFirst("meta[name=description]").attr("content"))
+                ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
                 : "";
 
             var check = new UrlCheck(
