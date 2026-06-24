@@ -1,3 +1,4 @@
+@import java.time.format.DateTimeFormatter
 @param java.util.List<hexlet.code.model.Url> urls
 @param java.lang.String flash
 @param java.lang.String flashType
@@ -13,6 +14,7 @@
                         <th>ID</th>
                         <th>Имя</th>
                         <th>Дата создания</th>
+                        <th>Дата проверки</th>
                         <th>Код ответа</th>
                     </tr>
                 </thead>
@@ -21,7 +23,14 @@
                         <tr>
                             <td>${url.getId()}</td>
                             <td><a href="/urls/${url.getId()}">${url.getName()}</a></td>
-                            <td>${url.getCreatedAt().toString()}</td>
+                            <td>${url.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
+                            <td>
+                                @if(url.getLastCheck() != null)
+                                    ${url.getLastCheck().getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
+                                @else
+                                    &nbsp;
+                                @endif
+                            </td>
                             <td>
                                 @if(url.getLastCheck() != null)
                                     ${url.getLastCheck().getStatusCode()}
