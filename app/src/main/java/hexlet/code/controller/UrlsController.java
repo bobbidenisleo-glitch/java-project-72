@@ -4,7 +4,6 @@ import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.repository.UrlCheckRepository;
-import hexlet.code.Utils;
 import io.javalin.http.Context;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
@@ -98,6 +97,10 @@ public class UrlsController {
                 ctx.status(422);
                 ctx.sessionAttribute("flash", "Некорректный URL");
                 ctx.sessionAttribute("flashType", "danger");
+                Map<String, Object> model = new HashMap<>();
+                model.put("flash", "Некорректный URL");
+                model.put("flashType", "danger");
+                ctx.render("index.jte", model);
                 return;
             }
 
@@ -124,6 +127,10 @@ public class UrlsController {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
+            Map<String, Object> model = new HashMap<>();
+            model.put("flash", "Некорректный URL");
+            model.put("flashType", "danger");
+            ctx.render("index.jte", model);
         }
     }
 
