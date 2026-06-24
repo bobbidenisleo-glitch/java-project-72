@@ -1,3 +1,4 @@
+@import java.time.format.DateTimeFormatter
 @param hexlet.code.model.Url url
 @param java.util.List<hexlet.code.model.UrlCheck> checks
 @param java.lang.String flash
@@ -20,7 +21,7 @@
                 </tr>
                 <tr>
                     <th>Дата создания</th>
-                    <td>${url.getCreatedAt().toString()}</td>
+                    <td>${url.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
                 </tr>
                 @if(!checks.isEmpty())
                 <tr>
@@ -56,7 +57,7 @@
                             <td>${check.getH1()}</td>
                             <td>${check.getTitle()}</td>
                             <td>${check.getDescription()}</td>
-                            <td>${check.getCreatedAt().toString()}</td>
+                            <td>${check.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
                         </tr>
                     @endfor
                 </tbody>
