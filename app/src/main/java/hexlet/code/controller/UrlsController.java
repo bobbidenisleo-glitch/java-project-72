@@ -145,6 +145,13 @@ public class UrlsController {
             var response = Unirest.get(url.getName())
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
+            int statusCode = response.getStatus();
+            if (statusCode >= 400) {
+                ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.redirect("/urls/" + id);
+                return;
+            }
             var doc = Jsoup.parse(response.getBody());
 
             String title = truncate(doc.title());
@@ -157,7 +164,7 @@ public class UrlsController {
 
             var check = new UrlCheck(
                 id,
-                response.getStatus(),
+                statusCode,
                 title,
                 h1,
                 description
