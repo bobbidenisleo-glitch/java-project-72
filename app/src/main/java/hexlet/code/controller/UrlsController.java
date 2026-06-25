@@ -16,51 +16,44 @@ import java.util.Map;
 
 public class UrlsController {
 
-    public static void index(Context ctx) {
-        try {
-            var urls = UrlRepository.findAll();
-            for (var url : urls) {
-                var checks = UrlCheckRepository.findByUrlId(url.getId());
-                if (!checks.isEmpty()) {
-                    url.setLastCheck(checks.get(0));
-                }
+    // index() - убрали try-catch, добавили throws Exception
+    public static void index(Context ctx) throws Exception {
+        var urls = UrlRepository.findAll();
+        for (var url : urls) {
+            var checks = UrlCheckRepository.findByUrlId(url.getId());
+            if (!checks.isEmpty()) {
+                url.setLastCheck(checks.get(0));
             }
-            Map<String, Object> model = new HashMap<>();
-            model.put("urls", urls);
-            model.put("flash", ctx.sessionAttribute("flash"));
-            model.put("flashType", ctx.sessionAttribute("flashType"));
-            ctx.sessionAttribute("flash", null);
-            ctx.sessionAttribute("flashType", null);
-            ctx.render("urls/index.jte", model);
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500);
         }
+        Map<String, Object> model = new HashMap<>();
+        model.put("urls", urls);
+        model.put("flash", ctx.sessionAttribute("flash"));
+        model.put("flashType", ctx.sessionAttribute("flashType"));
+        ctx.sessionAttribute("flash", null);
+        ctx.sessionAttribute("flashType", null);
+        ctx.render("urls/index.jte", model);
     }
 
-    public static void show(Context ctx) {
-        try {
-            long id = Long.parseLong(ctx.pathParam("id"));
-            var url = UrlRepository.findById(id).orElse(null);
-            if (url == null) {
-                ctx.status(404);
-                return;
-            }
-            var checks = UrlCheckRepository.findByUrlId(id);
-            Map<String, Object> model = new HashMap<>();
-            model.put("url", url);
-            model.put("checks", checks);
-            model.put("flash", ctx.sessionAttribute("flash"));
-            model.put("flashType", ctx.sessionAttribute("flashType"));
-            ctx.sessionAttribute("flash", null);
-            ctx.sessionAttribute("flashType", null);
-            ctx.render("show.jte", model);
-        } catch (Exception e) {
-            e.printStackTrace();
-            ctx.status(500);
+    // show() - убрали try-catch, добавили throws Exception
+    public static void show(Context ctx) throws Exception {
+        long id = Long.parseLong(ctx.pathParam("id"));
+        var url = UrlRepository.findById(id).orElse(null);
+        if (url == null) {
+            ctx.status(404);
+            return;
         }
+        var checks = UrlCheckRepository.findByUrlId(id);
+        Map<String, Object> model = new HashMap<>();
+        model.put("url", url);
+        model.put("checks", checks);
+        model.put("flash", ctx.sessionAttribute("flash"));
+        model.put("flashType", ctx.sessionAttribute("flashType"));
+        ctx.sessionAttribute("flash", null);
+        ctx.sessionAttribute("flashType", null);
+        ctx.render("show.jte", model);
     }
 
+    // create() - оставляем как есть
     public static void create(Context ctx) {
         try {
             String urlName = ctx.formParam("url");
@@ -76,21 +69,13 @@ public class UrlsController {
                 urlName = "http://" + urlName;
             }
 
-            URI uri;
-            try {
-                uri = new URI(urlName);
-                String host = uri.getHost();
-                if (host == null || host.isBlank() || !host.contains(".")) {
-                    throw new IllegalArgumentException("Invalid domain");
-                }
-            } catch (Exception e) {
+            URI uri = new URI(urlName);
+            String host = uri.getHost();
+            if (host == null || host.isBlank() || !host.contains(".")) {
                 ctx.status(422);
                 ctx.sessionAttribute("flash", "Некорректный URL");
                 ctx.sessionAttribute("flashType", "danger");
-                Map<String, Object> model = new HashMap<>();
-                model.put("flash", "Некорректный URL");
-                model.put("flashType", "danger");
-                ctx.render("index.jte", model);
+                ctx.redirect("/");
                 return;
             }
 
@@ -117,13 +102,11 @@ public class UrlsController {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
-            Map<String, Object> model = new HashMap<>();
-            model.put("flash", "Некорректный URL");
-            model.put("flashType", "danger");
-            ctx.render("index.jte", model);
+            ctx.redirect("/");
         }
     }
 
+    // check() - оставляем как есть
     public static void check(Context ctx) {
         try {
             long id = Long.parseLong(ctx.pathParam("id"));

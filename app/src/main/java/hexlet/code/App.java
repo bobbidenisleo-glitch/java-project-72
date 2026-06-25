@@ -4,6 +4,7 @@ import hexlet.code.config.DatabaseConfig;
 import hexlet.code.config.JteConfig;
 import hexlet.code.controller.UrlsController;
 import io.javalin.Javalin;
+import io.javalin.http.HttpStatus;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinJte;
 
@@ -35,6 +36,18 @@ public class App {
 
         Javalin app = Javalin.create(config -> {
             // Javalin 5.6.3 не имеет bundledPlugins
+        });
+
+        // Глобальный обработчик ошибок
+        app.exception(Exception.class, (e, ctx) -> {
+            e.printStackTrace();
+
+            ctx.sessionAttribute("flash",
+                "Произошла внутренняя ошибка сервера");
+            ctx.sessionAttribute("flashType", "danger");
+
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            ctx.redirect("/");
         });
 
         app.get("/", ctx -> ctx.render("index.jte"));
