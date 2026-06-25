@@ -9,32 +9,27 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class UrlsController {
 
     // index() - оптимизирован: один запрос для всех проверок
-    public static void index(Context ctx) throws Exception {
+    public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
         
-        // Получаем все проверки для всех URL одним запросом
         var allChecks = UrlCheckRepository.findAll();
-        
-        // Группируем проверки по url_id
         var checksByUrlId = allChecks.stream()
             .collect(Collectors.groupingBy(UrlCheck::getUrlId));
         
-        // Для каждого URL находим последнюю проверку
         for (var url : urls) {
             var checks = checksByUrlId.get(url.getId());
             if (checks != null && !checks.isEmpty()) {
-                // checks отсортированы по id DESC (самая свежая первая)
                 url.setLastCheck(checks.get(0));
             }
         }
@@ -48,8 +43,8 @@ public class UrlsController {
         ctx.render("urls/index.jte", model);
     }
 
-    // show() - убрали try-catch, добавили throws Exception
-    public static void show(Context ctx) throws Exception {
+    // show()
+    public static void show(Context ctx) throws SQLException {
         long id = Long.parseLong(ctx.pathParam("id"));
         var url = UrlRepository.findById(id).orElse(null);
         if (url == null) {
@@ -67,10 +62,10 @@ public class UrlsController {
         ctx.render("show.jte", model);
     }
 
-    // create()
-    public static void create(Context ctx) {
-        // Пустой URL - редирект на главную с сообщением
+    // create() - уменьшенный try-блок только для парсинга URL
+    public static void create(Context ctx) throws SQLException {
         String urlName = ctx.formParam("url");
+
         if (urlName == null || urlName.isBlank()) {
             ctx.sessionAttribute("flash", "URL не может быть пустым");
             ctx.sessionAttribute("flashType", "danger");
@@ -78,44 +73,13 @@ public class UrlsController {
             return;
         }
 
+        URI uri;
         try {
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
-
-            URI uri = new URI(urlName);
-            String host = uri.getHost();
-            if (host == null || host.isBlank() || !host.contains(".")) {
-                ctx.status(422);
-                ctx.sessionAttribute("flash", "Некорректный URL");
-                ctx.sessionAttribute("flashType", "danger");
-                Map<String, Object> model = new HashMap<>();
-                model.put("flash", "Некорректный URL");
-                model.put("flashType", "danger");
-                ctx.render("index.jte", model);
-                return;
-            }
-
-            String normalizedUrl = uri.getScheme() + "://" + uri.getHost();
-            if (uri.getPort() != -1) {
-                normalizedUrl += ":" + uri.getPort();
-            }
-
-            var existing = UrlRepository.findByName(normalizedUrl);
-            if (existing.isPresent()) {
-                ctx.sessionAttribute("flash", "Страница уже существует");
-                ctx.sessionAttribute("flashType", "info");
-                ctx.redirect("/urls/" + existing.get().getId());
-                return;
-            }
-
-            var url = new Url(normalizedUrl);
-            UrlRepository.save(url);
-            ctx.sessionAttribute("flash", "Страница успешно добавлена");
-            ctx.sessionAttribute("flashType", "success");
-            ctx.redirect("/urls/" + url.getId());
-
-        } catch (Exception e) {
+            uri = new URI(urlName);
+        } catch (URISyntaxException e) {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
@@ -123,54 +87,84 @@ public class UrlsController {
             model.put("flash", "Некорректный URL");
             model.put("flashType", "danger");
             ctx.render("index.jte", model);
+            return;
         }
+
+        String host = uri.getHost();
+        if (host == null || host.isBlank() || !host.contains(".")) {
+            ctx.status(422);
+            ctx.sessionAttribute("flash", "Некорректный URL");
+            ctx.sessionAttribute("flashType", "danger");
+            Map<String, Object> model = new HashMap<>();
+            model.put("flash", "Некорректный URL");
+            model.put("flashType", "danger");
+            ctx.render("index.jte", model);
+            return;
+        }
+
+        String normalizedUrl = uri.getScheme() + "://" + uri.getHost();
+        if (uri.getPort() != -1) {
+            normalizedUrl += ":" + uri.getPort();
+        }
+
+        var existing = UrlRepository.findByName(normalizedUrl);
+        if (existing.isPresent()) {
+            ctx.sessionAttribute("flash", "Страница уже существует");
+            ctx.sessionAttribute("flashType", "info");
+            ctx.redirect("/urls/" + existing.get().getId());
+            return;
+        }
+
+        var url = new Url(normalizedUrl);
+        UrlRepository.save(url);
+        ctx.sessionAttribute("flash", "Страница успешно добавлена");
+        ctx.sessionAttribute("flashType", "success");
+        ctx.redirect("/urls/" + url.getId());
     }
 
-    // check()
-    public static void check(Context ctx) {
+    // check() - маленький try только для HTTP-запроса
+    public static void check(Context ctx) throws SQLException {
+        long id = Long.parseLong(ctx.pathParam("id"));
+        var url = UrlRepository.findById(id).orElse(null);
+        if (url == null) {
+            ctx.status(HttpStatus.NOT_FOUND);
+            return;
+        }
+
+        // HTTP-запрос — только здесь может быть ошибка сети
+        kong.unirest.HttpResponse<String> response;
         try {
-            long id = Long.parseLong(ctx.pathParam("id"));
-            var url = UrlRepository.findById(id).orElse(null);
-            if (url == null) {
-                ctx.status(HttpStatus.NOT_FOUND);
-                return;
-            }
-            var response = Unirest.get(url.getName())
+            response = Unirest.get(url.getName())
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
-            int statusCode = response.getStatus();
-            if (statusCode >= 400) {
-                ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-                ctx.sessionAttribute("flashType", "danger");
-                ctx.redirect("/urls/" + id);
-                return;
-            }
-            var doc = Jsoup.parse(response.getBody());
-
-            String title = Utils.truncate(doc.title());
-            String h1 = doc.selectFirst("h1") != null
-                ? Utils.truncate(doc.selectFirst("h1").text())
-                : "";
-            String description = doc.selectFirst("meta[name=description]") != null
-                ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
-                : "";
-
-            var check = new UrlCheck(
-                id,
-                statusCode,
-                title,
-                h1,
-                description
-            );
-            UrlCheckRepository.save(check);
-            ctx.sessionAttribute("flash", "Страница успешно проверена");
-            ctx.sessionAttribute("flashType", "success");
-            ctx.redirect("/urls/" + id);
         } catch (Exception e) {
-            e.printStackTrace();
             ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
             ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/urls/" + ctx.pathParam("id"));
+            ctx.redirect("/urls/" + id);
+            return;
         }
+
+        int statusCode = response.getStatus();
+        if (statusCode >= 400) {
+            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+            ctx.sessionAttribute("flashType", "danger");
+            ctx.redirect("/urls/" + id);
+            return;
+        }
+
+        var doc = Jsoup.parse(response.getBody());
+        String title = Utils.truncate(doc.title());
+        String h1 = doc.selectFirst("h1") != null
+            ? Utils.truncate(doc.selectFirst("h1").text())
+            : "";
+        String description = doc.selectFirst("meta[name=description]") != null
+            ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
+            : "";
+
+        var check = new UrlCheck(id, statusCode, title, h1, description);
+        UrlCheckRepository.save(check);
+        ctx.sessionAttribute("flash", "Страница успешно проверена");
+        ctx.sessionAttribute("flashType", "success");
+        ctx.redirect("/urls/" + id);
     }
 }
