@@ -6,6 +6,7 @@ import hexlet.code.repository.UrlRepository;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.Utils;
 import io.javalin.http.Context;
+import io.javalin.http.HttpStatus;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -39,7 +40,7 @@ public class UrlsController {
         long id = Long.parseLong(ctx.pathParam("id"));
         var url = UrlRepository.findById(id).orElse(null);
         if (url == null) {
-            ctx.status(404);
+            ctx.status(HttpStatus.NOT_FOUND);
             return;
         }
         var checks = UrlCheckRepository.findByUrlId(id);
@@ -53,9 +54,9 @@ public class UrlsController {
         ctx.render("show.jte", model);
     }
 
-    // create() - исправлен для всех тестов
+    // create()
     public static void create(Context ctx) {
-        // Пустой URL - редирект на главную с сообщением (ОЖИДАНИЕ ТЕСТОВ)
+        // Пустой URL - редирект на главную с сообщением
         String urlName = ctx.formParam("url");
         if (urlName == null || urlName.isBlank()) {
             ctx.sessionAttribute("flash", "URL не может быть пустым");
@@ -112,13 +113,13 @@ public class UrlsController {
         }
     }
 
-    // check() - оставляем как есть
+    // check()
     public static void check(Context ctx) {
         try {
             long id = Long.parseLong(ctx.pathParam("id"));
             var url = UrlRepository.findById(id).orElse(null);
             if (url == null) {
-                ctx.status(404);
+                ctx.status(HttpStatus.NOT_FOUND);
                 return;
             }
             var response = Unirest.get(url.getName())
