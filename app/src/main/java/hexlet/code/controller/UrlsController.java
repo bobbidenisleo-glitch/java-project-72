@@ -53,22 +53,18 @@ public class UrlsController {
         ctx.render("show.jte", model);
     }
 
-    // create() - исправлен для тестов Playwright
+    // create() - исправлен для всех тестов
     public static void create(Context ctx) {
+        // Пустой URL - редирект на главную с сообщением (ОЖИДАНИЕ ТЕСТОВ)
+        String urlName = ctx.formParam("url");
+        if (urlName == null || urlName.isBlank()) {
+            ctx.sessionAttribute("flash", "URL не может быть пустым");
+            ctx.sessionAttribute("flashType", "danger");
+            ctx.redirect("/");
+            return;
+        }
+
         try {
-            String urlName = ctx.formParam("url");
-
-            if (urlName == null || urlName.isBlank()) {
-                ctx.sessionAttribute("flash", "URL не может быть пустым");
-                ctx.sessionAttribute("flashType", "danger");
-                Map<String, Object> model = new HashMap<>();
-                model.put("flash", "URL не может быть пустым");
-                model.put("flashType", "danger");
-                ctx.status(422);
-                ctx.render("index.jte", model);
-                return;
-            }
-
             if (!urlName.startsWith("http://") && !urlName.startsWith("https://")) {
                 urlName = "http://" + urlName;
             }
