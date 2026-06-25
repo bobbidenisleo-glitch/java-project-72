@@ -53,7 +53,7 @@ public class UrlsController {
         ctx.render("show.jte", model);
     }
 
-    // create() - оставляем как есть
+    // create() - исправлен для тестов Playwright
     public static void create(Context ctx) {
         try {
             String urlName = ctx.formParam("url");
@@ -61,7 +61,11 @@ public class UrlsController {
             if (urlName == null || urlName.isBlank()) {
                 ctx.sessionAttribute("flash", "URL не может быть пустым");
                 ctx.sessionAttribute("flashType", "danger");
-                ctx.redirect("/");
+                Map<String, Object> model = new HashMap<>();
+                model.put("flash", "URL не может быть пустым");
+                model.put("flashType", "danger");
+                ctx.status(422);
+                ctx.render("index.jte", model);
                 return;
             }
 
@@ -75,7 +79,10 @@ public class UrlsController {
                 ctx.status(422);
                 ctx.sessionAttribute("flash", "Некорректный URL");
                 ctx.sessionAttribute("flashType", "danger");
-                ctx.redirect("/");
+                Map<String, Object> model = new HashMap<>();
+                model.put("flash", "Некорректный URL");
+                model.put("flashType", "danger");
+                ctx.render("index.jte", model);
                 return;
             }
 
@@ -102,7 +109,10 @@ public class UrlsController {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/");
+            Map<String, Object> model = new HashMap<>();
+            model.put("flash", "Некорректный URL");
+            model.put("flashType", "danger");
+            ctx.render("index.jte", model);
         }
     }
 
