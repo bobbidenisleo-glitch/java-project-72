@@ -14,18 +14,31 @@ import org.jsoup.nodes.Document;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UrlsController {
 
-    // index() - убрали try-catch, добавили throws Exception
+    // index() - оптимизирован: один запрос для всех проверок
     public static void index(Context ctx) throws Exception {
         var urls = UrlRepository.findAll();
+        
+        // Получаем все проверки для всех URL одним запросом
+        var allChecks = UrlCheckRepository.findAll();
+        
+        // Группируем проверки по url_id
+        var checksByUrlId = allChecks.stream()
+            .collect(Collectors.groupingBy(UrlCheck::getUrlId));
+        
+        // Для каждого URL находим последнюю проверку
         for (var url : urls) {
-            var checks = UrlCheckRepository.findByUrlId(url.getId());
-            if (!checks.isEmpty()) {
+            var checks = checksByUrlId.get(url.getId());
+            if (checks != null && !checks.isEmpty()) {
+                // checks отсортированы по id DESC (самая свежая первая)
                 url.setLastCheck(checks.get(0));
             }
         }
+        
         Map<String, Object> model = new HashMap<>();
         model.put("urls", urls);
         model.put("flash", ctx.sessionAttribute("flash"));
