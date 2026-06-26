@@ -40,6 +40,12 @@ dependencies {
     implementation("com.konghq:unirest-java:3.14.0")
     runtimeOnly("com.h2database:h2:2.2.224")
     
+    // Lombok
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    testCompileOnly("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("io.javalin:javalin-testtools:5.6.3")
