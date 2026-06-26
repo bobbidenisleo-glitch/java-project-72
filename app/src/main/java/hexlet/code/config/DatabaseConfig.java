@@ -24,6 +24,9 @@ public class DatabaseConfig {
     }
 
     public static Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            init();
+        }
         log.info("DatabaseConfig.getConnection() called");
         return dataSource.getConnection();
     }

@@ -114,23 +114,6 @@ class AppTest {
         });
     }
 
-/*
-    @Test
-    void testCreateCheck() throws Exception {
-        var url = new Url("https://example.com");
-        UrlRepository.save(url);
-
-        var app = App.getApp();
-
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.post("/urls/" + url.getId() + "/checks", "");
-            assertThat(response.code()).isBetween(200, 399);
-
-            var checks = UrlCheckRepository.findByUrlId(url.getId());
-            assertThat(checks).isNotEmpty();
-        });
-    }
-*/
     @Test
     void testUrlPageContainsChecksForm() throws Exception {
         var url = new Url("https://hexlet.io");
@@ -378,5 +361,81 @@ class AppTest {
         });
 
         mockWebServer.shutdown();
+    }
+
+    @Test
+    void testAppMainPage() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/");
+            assertThat(response.code()).isEqualTo(200);
+            var body = response.body().string();
+            assertThat(body).contains("Анализатор страниц");
+        });
+    }
+
+    @Test
+    void testAppUrlsPage() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls");
+            assertThat(response.code()).isEqualTo(200);
+        });
+    }
+
+    @Test
+    void testAppCreateUrl() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=https://example.com");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
+
+    @Test
+    void testAppShowUrl() throws Exception {
+        var url = new Url("https://test.com");
+        UrlRepository.save(url);
+        
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls/" + url.getId());
+            assertThat(response.code()).isEqualTo(200);
+        });
+    }
+
+    @Test
+    void testAppCheckUrl() throws Exception {
+        var url = new Url("https://httpbin.org/status/200");
+        UrlRepository.save(url);
+        
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
+
+    @Test
+    void testInvalidUrlWithoutProtocol() throws Exception {
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=invalid.domain");
+            assertThat(response.code()).isEqualTo(200);
+            var saved = UrlRepository.findByName("http://invalid.domain");
+            assertThat(saved).isPresent();
+        });
+    }
+
+    @Test
+    void testCheckUrlWithError() throws Exception {
+        var url = new Url("https://this-domain-does-not-exist-12345.com");
+        UrlRepository.save(url);
+        
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+        });
     }
 }
