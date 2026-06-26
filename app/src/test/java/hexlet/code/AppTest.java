@@ -441,4 +441,21 @@ class AppTest {
             assertThat(saved).isPresent();
         });
     }
+
+    @Test
+    void testResetDataSource() throws Exception {
+        DatabaseConfig.init();
+
+        try (var conn = DatabaseConfig.getConnection()) {
+            assertThat(conn).isNotNull();
+            assertThat(conn.isClosed()).isFalse();
+        }
+
+        DatabaseConfig.resetDataSource();
+
+        try (var conn = DatabaseConfig.getConnection()) {
+            assertThat(conn).isNotNull();
+            assertThat(conn.isClosed()).isFalse();
+        }
+    }
 }
