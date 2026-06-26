@@ -24,7 +24,6 @@ public class DatabaseConfig {
     }
 
     public static Connection getConnection() throws SQLException {
-        // Если dataSource не инициализирован — инициализируем
         if (dataSource == null) {
             init();
         }
