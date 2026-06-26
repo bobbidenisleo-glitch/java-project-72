@@ -349,96 +349,10 @@ class AppTest {
             assertThat(check.getTitle()).isEqualTo("Mock Title");
             assertThat(check.getH1()).isEqualTo("Mock H1");
             assertThat(check.getDescription()).isEqualTo("Mock Description");
-            assertThat(check.getCreatedAt()).isNotNull();
         });
 
         mockWebServer.shutdown();
     }
-
-    @Test
-    void testMalformedUrl() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.post("/urls", "url=http://[");
-            assertThat(response.code()).isEqualTo(422);
-        });
-    }
-
-    @Test
-    void testFindAllChecks() throws Exception {
-        var url = new Url("https://example.com");
-        UrlRepository.save(url);
-
-        var check = new UrlCheck(
-            url.getId(),
-            200,
-            "Title",
-            "H1",
-            "Description"
-        );
-        UrlCheckRepository.save(check);
-
-        var checks = UrlCheckRepository.findAll();
-
-        assertThat(checks).hasSize(1);
-
-        var saved = checks.get(0);
-        assertThat(saved.getStatusCode()).isEqualTo(200);
-        assertThat(saved.getTitle()).isEqualTo("Title");
-        assertThat(saved.getH1()).isEqualTo("H1");
-        assertThat(saved.getDescription()).isEqualTo("Description");
-        assertThat(saved.getCreatedAt()).isNotNull();
-    }
-
-    @Test
-    void testAppMainPage() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.get("/");
-            assertThat(response.code()).isEqualTo(200);
-            var body = response.body().string();
-            assertThat(body).contains("Анализатор страниц");
-        });
-    }
-
-    @Test
-    void testAppUrlsPage() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.get("/urls");
-            assertThat(response.code()).isEqualTo(200);
-        });
-    }
-
-    @Test
-    void testAppCreateUrl() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.post("/urls", "url=https://example.com");
-            assertThat(response.code()).isBetween(200, 399);
-        });
-    }
-
-    @Test
-    void testAppShowUrl() throws Exception {
-        var url = new Url("https://test.com");
-        UrlRepository.save(url);
-        
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.get("/urls/" + url.getId());
-            assertThat(response.code()).isEqualTo(200);
-        });
-    }
-
-    @Test
-    void testInvalidUrlWithoutProtocol() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.post("/urls", "url=invalid.domain");
-            assertThat(response.code()).isEqualTo(200);
-            var saved = UrlRepository.findByName("http://invalid.domain");
-            assertThat(saved).isPresent();
-        });
-    }
 }
+
+    @Test
