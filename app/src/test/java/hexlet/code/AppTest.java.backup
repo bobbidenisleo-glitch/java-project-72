@@ -353,13 +353,6 @@ class AppTest {
 
         mockWebServer.shutdown();
     }
+}
 
     @Test
-    void testMalformedUrl() throws Exception {
-        var app = App.getApp();
-        JavalinTest.test(app, (server, client) -> {
-            var response = client.post("/urls", "url=http://[");
-            assertThat(response.code()).isEqualTo(422);
-        });
-    }
-}
