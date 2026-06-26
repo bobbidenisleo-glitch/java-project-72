@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class UrlsController {
 
-    // index() - оптимизирован: один запрос для всех проверок
+    // index()
     public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
         
@@ -62,7 +62,7 @@ public class UrlsController {
         ctx.render("show.jte", model);
     }
 
-    // create() - уменьшенный try-блок только для парсинга URL
+    // create()
     public static void create(Context ctx) throws SQLException {
         String urlName = ctx.formParam("url");
 
@@ -80,7 +80,7 @@ public class UrlsController {
             }
             uri = new URI(urlName);
         } catch (URISyntaxException e) {
-            ctx.status(422);
+            ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
             Map<String, Object> model = new HashMap<>();
@@ -92,7 +92,7 @@ public class UrlsController {
 
         String host = uri.getHost();
         if (host == null || host.isBlank() || !host.contains(".")) {
-            ctx.status(422);
+            ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashType", "danger");
             Map<String, Object> model = new HashMap<>();
@@ -122,7 +122,7 @@ public class UrlsController {
         ctx.redirect("/urls/" + url.getId());
     }
 
-    // check() - маленький try только для HTTP-запроса
+    // check()
     public static void check(Context ctx) throws SQLException {
         long id = Long.parseLong(ctx.pathParam("id"));
         var url = UrlRepository.findById(id).orElse(null);
@@ -131,7 +131,6 @@ public class UrlsController {
             return;
         }
 
-        // HTTP-запрос — только здесь может быть ошибка сети
         kong.unirest.HttpResponse<String> response;
         try {
             response = Unirest.get(url.getName())
@@ -145,7 +144,7 @@ public class UrlsController {
         }
 
         int statusCode = response.getStatus();
-        if (statusCode >= 400) {
+        if (statusCode >= HttpStatus.BAD_REQUEST.getCode()) {
             ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
             ctx.sessionAttribute("flashType", "danger");
             ctx.redirect("/urls/" + id);
