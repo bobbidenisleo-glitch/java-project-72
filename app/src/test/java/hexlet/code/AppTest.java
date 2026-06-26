@@ -349,6 +349,7 @@ class AppTest {
             assertThat(check.getTitle()).isEqualTo("Mock Title");
             assertThat(check.getH1()).isEqualTo("Mock H1");
             assertThat(check.getDescription()).isEqualTo("Mock Description");
+            assertThat(check.getCreatedAt()).isNotNull();
         });
 
         mockWebServer.shutdown();
@@ -361,5 +362,31 @@ class AppTest {
             var response = client.post("/urls", "url=http://[");
             assertThat(response.code()).isEqualTo(422);
         });
+    }
+
+    @Test
+    void testFindAllChecks() throws Exception {
+        var url = new Url("https://example.com");
+        UrlRepository.save(url);
+
+        var check = new UrlCheck(
+            url.getId(),
+            200,
+            "Title",
+            "H1",
+            "Description"
+        );
+        UrlCheckRepository.save(check);
+
+        var checks = UrlCheckRepository.findAll();
+
+        assertThat(checks).hasSize(1);
+
+        var saved = checks.get(0);
+        assertThat(saved.getStatusCode()).isEqualTo(200);
+        assertThat(saved.getTitle()).isEqualTo("Title");
+        assertThat(saved.getH1()).isEqualTo("H1");
+        assertThat(saved.getDescription()).isEqualTo("Description");
+        assertThat(saved.getCreatedAt()).isNotNull();
     }
 }
