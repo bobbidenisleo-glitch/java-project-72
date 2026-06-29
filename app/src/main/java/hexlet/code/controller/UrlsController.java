@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
 
 public class UrlsController {
 
-    // index()
+    // index() — оптимизированный запрос: только последние проверки
     public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
         
-        var allChecks = UrlCheckRepository.findAll();
-        var checksByUrlId = allChecks.stream()
+        // Получаем только последнюю проверку для каждого URL
+        var latestChecks = UrlCheckRepository.findLatestChecks();
+        var checksByUrlId = latestChecks.stream()
             .collect(Collectors.groupingBy(UrlCheck::getUrlId));
         
         for (var url : urls) {
