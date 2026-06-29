@@ -7,6 +7,7 @@ import io.javalin.Javalin;
 import io.javalin.http.HttpStatus;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinJte;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class App {
 
     public static Javalin getApp() throws SQLException, Exception {
@@ -23,6 +25,7 @@ public class App {
              var stmt = conn.createStatement()) {
             var inputStream = App.class.getClassLoader().getResourceAsStream("schema.sql");
             if (inputStream == null) {
+                log.error("schema.sql not found in classpath");
                 throw new RuntimeException("schema.sql not found in classpath");
             }
             String sql;
@@ -30,6 +33,10 @@ public class App {
                 sql = reader.lines().collect(Collectors.joining("\n"));
             }
             stmt.execute(sql);
+            log.info("Database schema initialized successfully");
+        } catch (SQLException e) {
+            log.error("Database initialization failed: {}", e.getMessage(), e);
+            throw e;
         }
 
         JavalinRenderer.register(new JavalinJte(JteConfig.create()), ".jte");
@@ -40,7 +47,7 @@ public class App {
 
         // Глобальный обработчик ошибок
         app.exception(Exception.class, (e, ctx) -> {
-            e.printStackTrace();
+            log.error("Internal server error: {}", e.getMessage(), e);
 
             ctx.sessionAttribute("flash",
                 "Произошла внутренняя ошибка сервера");
