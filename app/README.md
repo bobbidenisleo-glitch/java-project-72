@@ -17,3 +17,4 @@
 git clone git@github.com:bobbidenisleo-glitch/java-project-72.git
 cd java-project-72/app
 ./gradlew run
+```
