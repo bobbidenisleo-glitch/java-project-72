@@ -1,6 +1,7 @@
 package hexlet.code;
 
 import hexlet.code.config.DatabaseConfig;
+import hexlet.code.dto.UrlDTO;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
@@ -89,6 +90,30 @@ class AppTest {
             var response = client.get("/urls");
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.body().string()).contains("Сайты");
+        });
+    }
+
+    @Test
+    void testUrlsPageWithData() throws Exception {
+        var url = new Url("https://example.com");
+        UrlRepository.save(url);
+
+        var check = new UrlCheck(
+            url.getId(),
+            200,
+            "Test Title",
+            "Test H1",
+            "Test Description"
+        );
+        UrlCheckRepository.save(check);
+
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.get("/urls");
+            assertThat(response.code()).isEqualTo(200);
+            var body = response.body().string();
+            assertThat(body).contains("https://example.com");
+            assertThat(body).contains("200");
         });
     }
 
@@ -446,5 +471,17 @@ class AppTest {
             assertThat(conn).isNotNull();
             assertThat(conn.isClosed()).isFalse();
         }
+    }
+
+    @Test
+    void testUrlDTO() {
+        var createdAt = java.time.LocalDateTime.now();
+        var check = new UrlCheck(1L, 200, "Title", "H1", "Description");
+        var dto = new UrlDTO(1L, "https://example.com", createdAt, check);
+
+        assertThat(dto.getId()).isEqualTo(1L);
+        assertThat(dto.getName()).isEqualTo("https://example.com");
+        assertThat(dto.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(dto.getLastCheck()).isEqualTo(check);
     }
 }
