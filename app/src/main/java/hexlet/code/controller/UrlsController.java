@@ -1,5 +1,6 @@
 package hexlet.code.controller;
 
+import hexlet.code.dto.UrlDTO;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlRepository;
@@ -15,28 +16,32 @@ import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class UrlsController {
 
-    // index() — оптимизированный запрос: только последние проверки
+    // index() — использует DTO
     public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
-        
-        // Получаем только последнюю проверку для каждого URL
         var latestChecks = UrlCheckRepository.findLatestChecks();
         var checksByUrlId = latestChecks.stream()
             .collect(Collectors.groupingBy(UrlCheck::getUrlId));
-        
-        for (var url : urls) {
+
+        // Преобразуем Url в UrlDTO с lastCheck
+        List<UrlDTO> urlDTOs = urls.stream().map(url -> {
             var checks = checksByUrlId.get(url.getId());
-            if (checks != null && !checks.isEmpty()) {
-                url.setLastCheck(checks.get(0));
-            }
-        }
-        
+            UrlCheck lastCheck = (checks != null && !checks.isEmpty()) ? checks.get(0) : null;
+            return new UrlDTO(
+                url.getId(),
+                url.getName(),
+                url.getCreatedAt(),
+                lastCheck
+            );
+        }).collect(Collectors.toList());
+
         Map<String, Object> model = new HashMap<>();
-        model.put("urls", urls);
+        model.put("urls", urlDTOs);
         model.put("flash", ctx.sessionAttribute("flash"));
         model.put("flashType", ctx.sessionAttribute("flashType"));
         ctx.sessionAttribute("flash", null);

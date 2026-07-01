@@ -191,20 +191,9 @@ class AppTest {
         url.setName("https://hexlet.io");
         url.setCreatedAt(createdAt);
 
-        var check = new UrlCheck(
-            1L,
-            200,
-            "Title",
-            "H1",
-            "Description"
-        );
-
-        url.setLastCheck(check);
-
         assertThat(url.getId()).isEqualTo(100L);
         assertThat(url.getName()).isEqualTo("https://hexlet.io");
         assertThat(url.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(url.getLastCheck()).isEqualTo(check);
     }
 
     @Test
