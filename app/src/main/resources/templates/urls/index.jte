@@ -1,5 +1,5 @@
 @import java.time.format.DateTimeFormatter
-@param java.util.List<hexlet.code.model.Url> urls
+@param java.util.List<hexlet.code.dto.UrlDTO> urls
 @param java.lang.String flash
 @param java.lang.String flashType
 
