@@ -38,7 +38,7 @@ public class UrlsController {
                 url.getCreatedAt(),
                 lastCheck
             );
-        }).collect(Collectors.toList());
+        }).toList();
 
         Map<String, Object> model = new HashMap<>();
         model.put("urls", urlDTOs);
