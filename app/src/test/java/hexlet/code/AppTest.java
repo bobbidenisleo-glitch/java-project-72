@@ -496,4 +496,22 @@ class AppTest {
             assertThat(response.code()).isBetween(200, 399);
         });
     }
+
+    @Test
+    void testCheckWithBadStatusCode() throws Exception {
+        var mockWebServer = new MockWebServer();
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+        mockWebServer.start();
+
+        var url = new Url(mockWebServer.url("/").toString());
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+
+        mockWebServer.shutdown();
+    }
 }
