@@ -1,5 +1,5 @@
 @import java.time.format.DateTimeFormatter
-@param java.util.List<hexlet.code.dto.UrlDTO> urls
+@param hexlet.code.dto.UrlsPage page
 @param java.lang.String flash
 @param java.lang.String flashType
 
@@ -19,21 +19,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for(var url : urls)
+                    @for(var url : page.getUrls())
                         <tr>
                             <td>${url.getId()}</td>
                             <td><a href="/urls/${url.getId()}">${url.getName()}</a></td>
                             <td>${url.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
                             <td>
-                                @if(url.getLastCheck() != null)
-                                    ${url.getLastCheck().getStatusCode()}
+                                @if(page.getLatestChecks().get(url.getId()) != null)
+                                    ${page.getLatestChecks().get(url.getId()).getStatusCode()}
                                 @else
                                     &nbsp;
                                 @endif
                             </td>
                             <td>
-                                @if(url.getLastCheck() != null)
-                                    ${url.getLastCheck().getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
+                                @if(page.getLatestChecks().get(url.getId()) != null)
+                                    ${page.getLatestChecks().get(url.getId()).getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
                                 @else
                                     &nbsp;
                                 @endif
