@@ -8,6 +8,7 @@ import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.Utils;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.NotFoundResponse;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
 
@@ -22,7 +23,6 @@ public class UrlsController {
     public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
         var latestChecks = UrlCheckRepository.findLatestChecks();
-
         var page = new UrlsPage(urls, latestChecks);
 
         Map<String, Object> model = new HashMap<>();
@@ -34,14 +34,12 @@ public class UrlsController {
         ctx.render("urls/index.jte", model);
     }
 
-    // show(), create(), check() — без изменений
+    // show() — использует orElseThrow
     public static void show(Context ctx) throws SQLException {
         long id = Long.parseLong(ctx.pathParam("id"));
-        var url = UrlRepository.findById(id).orElse(null);
-        if (url == null) {
-            ctx.status(HttpStatus.NOT_FOUND);
-            return;
-        }
+        var url = UrlRepository.findById(id)
+            .orElseThrow(() -> new NotFoundResponse("Url with id = " + id + " not found"));
+
         var checks = UrlCheckRepository.findByUrlId(id);
         Map<String, Object> model = new HashMap<>();
         model.put("url", url);
@@ -106,13 +104,12 @@ public class UrlsController {
         ctx.redirect("/urls/" + url.getId());
     }
 
+    // check() — использует orElseThrow
     public static void check(Context ctx) throws SQLException {
         long id = Long.parseLong(ctx.pathParam("id"));
-        var url = UrlRepository.findById(id).orElse(null);
-        if (url == null) {
-            ctx.status(HttpStatus.NOT_FOUND);
-            return;
-        }
+        var url = UrlRepository.findById(id)
+            .orElseThrow(() -> new NotFoundResponse("Url with id = " + id + " not found"));
+
         kong.unirest.HttpResponse<String> response;
         try {
             response = Unirest.get(url.getName())
