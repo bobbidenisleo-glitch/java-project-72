@@ -20,33 +20,23 @@ import java.util.Map;
 
 public class UrlsController {
 
-    // --- Вспомогательные методы для устранения дублирования ---
-
-    // 1. Подготовка модели с flash-сообщениями
-    private static void prepareModelWithFlash(Context ctx, Map<String, Object> model) {
-        model.put("flash", ctx.sessionAttribute("flash"));
-        model.put("flashType", ctx.sessionAttribute("flashType"));
-        ctx.sessionAttribute("flash", null);
-        ctx.sessionAttribute("flashType", null);
-    }
-
-    // 2. Ошибка "Некорректный URL" (для create)
+    // Вспомогательный метод для ошибки "Некорректный URL"
     private static void renderInvalidUrlError(Context ctx) {
         ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
+        ctx.sessionAttribute("flash", "Некорректный URL");
+        ctx.sessionAttribute("flashType", "danger");
         Map<String, Object> model = new HashMap<>();
         model.put("flash", "Некорректный URL");
         model.put("flashType", "danger");
         ctx.render("index.jte", model);
     }
 
-    // 3. Ошибка проверки (для check)
-    private static void renderCheckError(Context ctx, long id) {
-        ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-        ctx.sessionAttribute("flashType", "danger");
-        ctx.redirect("/urls/" + id);
+    private static void prepareModelWithFlash(Context ctx, Map<String, Object> model) {
+        model.put("flash", ctx.sessionAttribute("flash"));
+        model.put("flashType", ctx.sessionAttribute("flashType"));
+        ctx.sessionAttribute("flash", null);
+        ctx.sessionAttribute("flashType", null);
     }
-
-    // --- Основные методы контроллера ---
 
     public static void index(Context ctx) throws SQLException {
         var urls = UrlRepository.findAll();
@@ -131,24 +121,39 @@ public class UrlsController {
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
         } catch (Exception e) {
-            renderCheckError(ctx, id);
+            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+            ctx.sessionAttribute("flashType", "danger");
+            ctx.redirect("/urls/" + id);
             return;
         }
 
         int statusCode = response.getStatus();
         if (statusCode >= HttpStatus.BAD_REQUEST.getCode()) {
-            renderCheckError(ctx, id);
+            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+            ctx.sessionAttribute("flashType", "danger");
+            ctx.redirect("/urls/" + id);
             return;
         }
 
-        var doc = Jsoup.parse(response.getBody());
-        String title = Utils.truncate(doc.title());
-        String h1 = doc.selectFirst("h1") != null
-            ? Utils.truncate(doc.selectFirst("h1").text())
-            : "";
-        String description = doc.selectFirst("meta[name=description]") != null
-            ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
-            : "";
+        // Парсинг HTML — оборачиваем в try-catch на случай ошибки
+        String title;
+        String h1;
+        String description;
+        try {
+            var doc = Jsoup.parse(response.getBody());
+            title = Utils.truncate(doc.title());
+            h1 = doc.selectFirst("h1") != null
+                ? Utils.truncate(doc.selectFirst("h1").text())
+                : "";
+            description = doc.selectFirst("meta[name=description]") != null
+                ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
+                : "";
+        } catch (Exception e) {
+            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+            ctx.sessionAttribute("flashType", "danger");
+            ctx.redirect("/urls/" + id);
+            return;
+        }
 
         var check = new UrlCheck(id, statusCode, title, h1, description);
         UrlCheckRepository.save(check);
