@@ -484,4 +484,16 @@ class AppTest {
         assertThat(dto.getCreatedAt()).isEqualTo(createdAt);
         assertThat(dto.getLastCheck()).isEqualTo(check);
     }
+
+    @Test
+    void testCheckWithInvalidUrl() throws Exception {
+        var url = new Url("http://localhost:1");
+        UrlRepository.save(url);
+
+        var app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls/" + url.getId() + "/checks", "");
+            assertThat(response.code()).isBetween(200, 399);
+        });
+    }
 }
