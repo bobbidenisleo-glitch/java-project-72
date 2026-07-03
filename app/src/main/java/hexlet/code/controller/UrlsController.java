@@ -20,15 +20,10 @@ import java.util.Map;
 
 public class UrlsController {
 
-    // Вспомогательный метод для ошибки "Некорректный URL"
-    private static void renderInvalidUrlError(Context ctx) {
-        ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
-        ctx.sessionAttribute("flash", "Некорректный URL");
-        ctx.sessionAttribute("flashType", "danger");
-        Map<String, Object> model = new HashMap<>();
-        model.put("flash", "Некорректный URL");
-        model.put("flashType", "danger");
-        ctx.render("index.jte", model);
+    // Единый метод для установки flash-сообщения
+    private static void setFlash(Context ctx, String message, String type) {
+        ctx.sessionAttribute("flash", message);
+        ctx.sessionAttribute("flashType", type);
     }
 
     private static void prepareModelWithFlash(Context ctx, Map<String, Object> model) {
@@ -36,6 +31,19 @@ public class UrlsController {
         model.put("flashType", ctx.sessionAttribute("flashType"));
         ctx.sessionAttribute("flash", null);
         ctx.sessionAttribute("flashType", null);
+    }
+
+    private static void renderInvalidUrlError(Context ctx) {
+        ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
+        setFlash(ctx, "Некорректный URL", "danger");
+        Map<String, Object> model = new HashMap<>();
+        prepareModelWithFlash(ctx, model);
+        ctx.render("index.jte", model);
+    }
+
+    private static void renderCheckError(Context ctx, long id) {
+        setFlash(ctx, "Произошла ошибка при проверке", "danger");
+        ctx.redirect("/urls/" + id);
     }
 
     public static void index(Context ctx) throws SQLException {
@@ -66,8 +74,7 @@ public class UrlsController {
         String urlName = ctx.formParam("url");
 
         if (urlName == null || urlName.isBlank()) {
-            ctx.sessionAttribute("flash", "URL не может быть пустым");
-            ctx.sessionAttribute("flashType", "danger");
+            setFlash(ctx, "URL не может быть пустым", "danger");
             ctx.redirect("/");
             return;
         }
@@ -97,16 +104,14 @@ public class UrlsController {
 
         var existing = UrlRepository.findByName(normalizedUrl);
         if (existing.isPresent()) {
-            ctx.sessionAttribute("flash", "Страница уже существует");
-            ctx.sessionAttribute("flashType", "info");
+            setFlash(ctx, "Страница уже существует", "info");
             ctx.redirect("/urls/" + existing.get().getId());
             return;
         }
 
         var url = new Url(normalizedUrl);
         UrlRepository.save(url);
-        ctx.sessionAttribute("flash", "Страница успешно добавлена");
-        ctx.sessionAttribute("flashType", "success");
+        setFlash(ctx, "Страница успешно добавлена", "success");
         ctx.redirect("/urls/" + url.getId());
     }
 
@@ -121,21 +126,16 @@ public class UrlsController {
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
         } catch (Exception e) {
-            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/urls/" + id);
+            renderCheckError(ctx, id);
             return;
         }
 
         int statusCode = response.getStatus();
         if (statusCode >= HttpStatus.BAD_REQUEST.getCode()) {
-            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/urls/" + id);
+            renderCheckError(ctx, id);
             return;
         }
 
-        // Парсинг HTML — оборачиваем в try-catch на случай ошибки
         String title;
         String h1;
         String description;
@@ -149,16 +149,13 @@ public class UrlsController {
                 ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
                 : "";
         } catch (Exception e) {
-            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.redirect("/urls/" + id);
+            renderCheckError(ctx, id);
             return;
         }
 
         var check = new UrlCheck(id, statusCode, title, h1, description);
         UrlCheckRepository.save(check);
-        ctx.sessionAttribute("flash", "Страница успешно проверена");
-        ctx.sessionAttribute("flashType", "success");
+        setFlash(ctx, "Страница успешно проверена", "success");
         ctx.redirect("/urls/" + id);
     }
 }
