@@ -20,7 +20,6 @@ import java.util.Map;
 
 public class UrlsController {
 
-    // Единый метод для установки flash-сообщения
     private static void setFlash(Context ctx, String message, String type) {
         ctx.sessionAttribute("flash", message);
         ctx.sessionAttribute("flashType", type);
@@ -120,26 +119,24 @@ public class UrlsController {
         var url = UrlRepository.findById(id)
             .orElseThrow(() -> new NotFoundResponse("Url with id = " + id + " not found"));
 
-        kong.unirest.HttpResponse<String> response;
+        // Один try-блок для HTTP-запроса и парсинга
+        String title = "";
+        String h1 = "";
+        String description = "";
+        int statusCode;
+
         try {
-            response = Unirest.get(url.getName())
+            var response = Unirest.get(url.getName())
                 .header("User-Agent", "Mozilla/5.0")
                 .asString();
-        } catch (Exception e) {
-            renderCheckError(ctx, id);
-            return;
-        }
 
-        int statusCode = response.getStatus();
-        if (statusCode >= HttpStatus.BAD_REQUEST.getCode()) {
-            renderCheckError(ctx, id);
-            return;
-        }
+            statusCode = response.getStatus();
 
-        String title;
-        String h1;
-        String description;
-        try {
+            if (statusCode >= HttpStatus.BAD_REQUEST.getCode()) {
+                renderCheckError(ctx, id);
+                return;
+            }
+
             var doc = Jsoup.parse(response.getBody());
             title = Utils.truncate(doc.title());
             h1 = doc.selectFirst("h1") != null
@@ -148,6 +145,7 @@ public class UrlsController {
             description = doc.selectFirst("meta[name=description]") != null
                 ? Utils.truncate(doc.selectFirst("meta[name=description]").attr("content"))
                 : "";
+
         } catch (Exception e) {
             renderCheckError(ctx, id);
             return;
