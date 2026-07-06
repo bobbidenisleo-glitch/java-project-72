@@ -1,5 +1,6 @@
 package hexlet.code.controller;
 
+import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
@@ -15,7 +16,6 @@ import org.jsoup.Jsoup;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class UrlsController {
@@ -25,19 +25,13 @@ public class UrlsController {
         ctx.sessionAttribute("flashType", type);
     }
 
-    private static void prepareModelWithFlash(Context ctx, Map<String, Object> model) {
-        model.put("flash", ctx.sessionAttribute("flash"));
-        model.put("flashType", ctx.sessionAttribute("flashType"));
-        ctx.sessionAttribute("flash", null);
-        ctx.sessionAttribute("flashType", null);
-    }
-
     private static void renderInvalidUrlError(Context ctx) {
         ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
         setFlash(ctx, "Некорректный URL", "danger");
-        Map<String, Object> model = new HashMap<>();
-        prepareModelWithFlash(ctx, model);
-        ctx.render("index.jte", model);
+        ctx.render("index.jte", Map.of(
+            "flash", ctx.consumeSessionAttribute("flash"),
+            "flashType", ctx.consumeSessionAttribute("flashType")
+        ));
     }
 
     private static void renderCheckError(Context ctx, long id) {
@@ -49,11 +43,9 @@ public class UrlsController {
         var urls = UrlRepository.findAll();
         var latestChecks = UrlCheckRepository.findLatestChecks();
         var page = new UrlsPage(urls, latestChecks);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("page", page);
-        prepareModelWithFlash(ctx, model);
-        ctx.render("urls/index.jte", model);
+        page.setFlash(ctx.consumeSessionAttribute("flash"));
+        page.setFlashType(ctx.consumeSessionAttribute("flashType"));
+        ctx.render("urls/index.jte", Map.of("page", page));
     }
 
     public static void show(Context ctx) throws SQLException {
@@ -62,11 +54,10 @@ public class UrlsController {
             .orElseThrow(() -> new NotFoundResponse("Url with id = " + id + " not found"));
 
         var checks = UrlCheckRepository.findByUrlId(id);
-        Map<String, Object> model = new HashMap<>();
-        model.put("url", url);
-        model.put("checks", checks);
-        prepareModelWithFlash(ctx, model);
-        ctx.render("show.jte", model);
+        var page = new UrlPage(url, checks);
+        page.setFlash(ctx.consumeSessionAttribute("flash"));
+        page.setFlashType(ctx.consumeSessionAttribute("flashType"));
+        ctx.render("show.jte", Map.of("page", page));
     }
 
     public static void create(Context ctx) throws SQLException {
@@ -119,11 +110,10 @@ public class UrlsController {
         var url = UrlRepository.findById(id)
             .orElseThrow(() -> new NotFoundResponse("Url with id = " + id + " not found"));
 
-        // Один try-блок для HTTP-запроса и парсинга
         String title = "";
         String h1 = "";
         String description = "";
-        int statusCode;
+        int statusCode = 0;
 
         try {
             var response = Unirest.get(url.getName())

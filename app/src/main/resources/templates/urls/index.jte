@@ -1,9 +1,7 @@
 @import java.time.format.DateTimeFormatter
 @param hexlet.code.dto.UrlsPage page
-@param java.lang.String flash
-@param java.lang.String flashType
 
-@template.tag.layout(flash = flash, flashType = flashType, 
+@template.tag.layout(flash = page.getFlash(), flashType = page.getFlashType(), 
     content = @`
 
         <h1>Сайты</h1>

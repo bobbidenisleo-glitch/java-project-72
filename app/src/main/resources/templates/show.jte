@@ -1,38 +1,35 @@
 @import java.time.format.DateTimeFormatter
-@param hexlet.code.model.Url url
-@param java.util.List<hexlet.code.model.UrlCheck> checks
-@param java.lang.String flash
-@param java.lang.String flashType
+@param hexlet.code.dto.UrlPage page
 
-@template.tag.layout(flash = flash, flashType = flashType, 
+@template.tag.layout(flash = page.getFlash(), flashType = page.getFlashType(), 
     content = @`
 
-        <h1>Сайт: ${url.getName()}</h1>
+        <h1>Сайт: ${page.getUrl().getName()}</h1>
 
         <table class="table table-bordered" data-test="url">
             <tbody>
                 <tr>
                     <th>ID</th>
-                    <td>${url.getId()}</td>
+                    <td>${page.getUrl().getId()}</td>
                 </tr>
                 <tr>
                     <th>Имя</th>
-                    <td>${url.getName()}</td>
+                    <td>${page.getUrl().getName()}</td>
                 </tr>
                 <tr>
                     <th>Дата создания</th>
-                    <td>${url.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
+                    <td>${page.getUrl().getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}</td>
                 </tr>
-                @if(!checks.isEmpty())
+                @if(!page.getChecks().isEmpty())
                 <tr>
                     <th>Код ответа</th>
-                    <td>${checks.get(0).getStatusCode()}</td>
+                    <td>${page.getChecks().get(0).getStatusCode()}</td>
                 </tr>
                 @endif
             </tbody>
         </table>
 
-        <form action="/urls/${url.getId()}/checks" method="post">
+        <form action="/urls/${page.getUrl().getId()}/checks" method="post">
             <input type="submit" class="btn btn-primary" value="Запустить проверку">
         </form>
 
@@ -50,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for(var check : checks)
+                    @for(var check : page.getChecks())
                         <tr>
                             <td>${check.getId()}</td>
                             <td>${check.getStatusCode()}</td>

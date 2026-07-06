@@ -3,25 +3,24 @@ package hexlet.code.dto;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import java.util.List;
-import java.util.Map;
 
-public class UrlsPage extends BasePage {
-    private List<Url> urls;
-    private Map<Long, UrlCheck> latestChecks;
+public class UrlPage extends BasePage {
+    private Url url;
+    private List<UrlCheck> checks;
     private String flash;
     private String flashType;
 
-    public UrlsPage(List<Url> urls, Map<Long, UrlCheck> latestChecks) {
-        this.urls = urls;
-        this.latestChecks = latestChecks;
+    public UrlPage(Url url, List<UrlCheck> checks) {
+        this.url = url;
+        this.checks = checks;
     }
 
-    public List<Url> getUrls() {
-        return urls;
+    public Url getUrl() {
+        return url;
     }
 
-    public Map<Long, UrlCheck> getLatestChecks() {
-        return latestChecks;
+    public List<UrlCheck> getChecks() {
+        return checks;
     }
 
     public String getFlash() {
